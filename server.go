@@ -32,7 +32,7 @@ type Yarana struct {
 	appBaseURL string
 }
 
-// NewYarana creates Yarana
+// NewYarana creates Yarana struct
 func NewYarana(channelSecret, channelToken, appBaseURL string) (*Yarana, error) {
 	apiEndpointBase := os.Getenv("ENDPOINT_BASE")
 	if apiEndpointBase == "" {
@@ -52,7 +52,7 @@ func NewYarana(channelSecret, channelToken, appBaseURL string) (*Yarana, error) 
 	}, nil
 }
 
-// Callback
+// Callback is callback of http request
 func (app *Yarana) Callback(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "hello user")
 }

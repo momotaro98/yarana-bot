@@ -1,15 +1,12 @@
-# yarana-bot --- やらなボット
+# yarana-bot  やらなボット
 
 Line Bot Application
 
 ## Feature
 
-やると褒めます
+* やると褒めます
+* やらないと怒ります
 
-やらないと怒ります
-
-The bot
-
-Praises you if you do
-
-Give you a scolding if you don't
+This bot
+* praises you if you do your task
+* gives you a scolding if you don't
