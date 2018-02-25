@@ -1,0 +1,20 @@
+{
+	"ImportPath": "github.com/momotaro98/yarana-bot",
+	"GoVersion": "go1.9",
+	"GodepVersion": "v80",
+	"Deps": [
+		{
+			"ImportPath": "github.com/line/line-bot-sdk-go/linebot",
+			"Comment": "1.0.0-91-gd571964",
+			"Rev": "d5719649979e73fbf3551b3f277fd6d8f85c887b"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "96dbb961a39ddccf16860cdd355bfa639c497f23"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context/ctxhttp",
+			"Rev": "96dbb961a39ddccf16860cdd355bfa639c497f23"
+		}
+	]
+}
