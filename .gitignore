@@ -36,6 +36,6 @@ _testmain.go
 *.out
 
 # External packages folder
-vendor/
+# vendor/
 
 build/
