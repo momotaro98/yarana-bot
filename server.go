@@ -122,6 +122,12 @@ func (app *Yarana) replyText(replyToken, text string) error {
 func (app *Yarana) handleText(message *linebot.TextMessage, replyToken string, source *linebot.EventSource) error {
 	switch message.Text {
 	}
+	if _, err := app.bot.ReplyMessage(
+		replyToken,
+		linebot.NewTextMessage(message.Text),
+	).Do(); err != nil {
+		return err
+	}
 	return nil
 }
 
