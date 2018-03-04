@@ -12,15 +12,17 @@ import (
 
 // KotoData is DTO of thing to do in Yarana-Bot
 type KotoData struct {
-	ID    string
-	Title string
+	ID     string
+	UserID string
+	Title  string
 }
 
 // NewKotoData is constructor of KotoData
-func NewKotoData(id string, title string) (*KotoData, error) {
+func NewKotoData(id string, userID string, title string) (*KotoData, error) {
 	return &KotoData{
-		ID:    id,
-		Title: title,
+		ID:     id,
+		UserID: userID,
+		Title:  title,
 	}, nil
 }
 
@@ -43,7 +45,7 @@ func NewActivityData(id string, kotoID string, timeStamp time.Time) (*ActivityDa
 // DataCall is a main interface of Yarukoto
 type DataCall interface {
 	GetKotoByID(id string) (*KotoData, error)
-	GetKotoByTitle(title string) (*KotoData, error)
+	GetKotoByUserID(userID string) ([]*KotoData, error)
 	AddKoto(koto *KotoData) error
 	EditKoto(id string, koto *KotoData) (*KotoData, error)
 	DeleteKoto(id string) error
@@ -54,7 +56,7 @@ type DataCall interface {
 
 // SimpleDataCall is a alternative of DataCall // TODO: interface for prototype
 type SimpleDataCall interface {
-	GetKotoByTitle(title string) (*KotoData, error)
+	GetKotoByUserID(userID string) ([]*KotoData, error)
 	AddKoto(koto *KotoData) error
 	GetActivitiesByKotoDataID(kotoID string) ([]*ActivityData, error)
 	AddActivity(activity *ActivityData) error
@@ -75,13 +77,21 @@ func NewYaranaDataCallForTest() (*YaranaDataCallForTest, error) {
 	return &YaranaDataCallForTest{}, nil
 }
 
-// GetKotoByTitle is a method of DataCall interface
-func (c *YaranaDataCallForTest) GetKotoByTitle(title string) (*KotoData, error) {
-	koto, err := NewKotoData("0123456789a", title)
+// GetKotoByUserID is a method of DataCall interface
+func (c *YaranaDataCallForTest) GetKotoByUserID(userID string) ([]*KotoData, error) {
+	// Get Koto by userID from something
+	id := "0123456789a"
+	title := "Test Title"
+	koto, err := NewKotoData(id, userID, title)
 	if err != nil {
 		return nil, err
 	}
-	return koto, nil
+	title2 := "Test Title 2"
+	koto2, err := NewKotoData(id, userID, title2)
+	if err != nil {
+		return nil, err
+	}
+	return []*KotoData{koto, koto2}, nil
 }
 
 // AddKoto is a method of DataCall interface
