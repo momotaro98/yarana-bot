@@ -127,7 +127,6 @@ func main() {
 	}
 
 	http.HandleFunc("/callback", app.Callback)
-	http.HandleFunc("/pushmessage", app.GetReqAndPushMessage)
 	// TODO: Support HTTPS by using `ListenAdnServeTLS`, reverse proxy or etc.
 	if err := http.ListenAndServe(":"+os.Getenv("PORT"), nil); err != nil {
 		log.Fatal(err)
@@ -160,17 +159,6 @@ func NewYarana(channelSecret, channelToken, appBaseURL string, dataCall SimpleDa
 		appBaseURL: appBaseURL,
 		dataCall:   dataCall,
 	}, nil
-}
-
-// GetReqAndPushMessage gets HTTP Get and push message to specific user
-func (app *Yarana) GetReqAndPushMessage(w http.ResponseWriter, r *http.Request) {
-	if _, err := app.bot.PushMessage(
-		"Ufead269d178607eb0483c4f9cd213d25",
-		linebot.NewTextMessage("Hello! こんにちわわ。やらなボットだよん♡"),
-	).Do(); err != nil {
-		log.Fatal(err)
-		return
-	}
 }
 
 // Callback function for http server
