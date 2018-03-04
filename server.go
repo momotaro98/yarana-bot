@@ -65,6 +65,10 @@ func (app *Yarana) Callback(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, event := range events {
 		log.Printf("Got event %v", event)
+		log.Printf("EventSource Type: %v", event.Source.Type)
+		log.Printf("EventSource UserID: %s", event.Source.UserID)
+		log.Printf("EventSource GroupID: %s", event.Source.GroupID)
+		log.Printf("EventSource RoomID: %s", event.Source.RoomID)
 		switch event.Type {
 		case linebot.EventTypeMessage:
 			switch message := event.Message.(type) {
