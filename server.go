@@ -91,12 +91,14 @@ func (c *YaranaDataCallForTest) AddKoto(koto *KotoData) error {
 
 // GetActivitiesByKotoDataID is a method of DataCall interface
 func (c *YaranaDataCallForTest) GetActivitiesByKotoDataID(kotoID string) ([]*ActivityData, error) {
-	timeStamp := time.Date(2018, 3, 3, 3, 3, 35, 0, nil)
+	loc, _ := time.LoadLocation("Asia/Tokyo")
+	timeStamp := time.Date(2018, 3, 3, 3, 3, 35, 0, loc)
 	activity, err := NewActivityData("0123456789a", kotoID, timeStamp)
 	if err != nil {
 		return nil, err
 	}
-	timeStamp2 := time.Date(2018, 3, 3, 3, 3, 36, 0, nil)
+	loc2, _ := time.LoadLocation("Asia/Tokyo")
+	timeStamp2 := time.Date(2018, 3, 3, 3, 3, 36, 0, loc2)
 	activity2, err := NewActivityData("0123456789b", kotoID, timeStamp2)
 	if err != nil {
 		return nil, err
