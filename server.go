@@ -45,7 +45,7 @@ func NewActivityData(id string, kotoID string, timeStamp time.Time) (*ActivityDa
 // DataCall is a main interface of Yarukoto
 type DataCall interface {
 	GetKotoByID(id string) (*KotoData, error)
-	GetKotoByUserID(userID string) ([]*KotoData, error)
+	GetKotosByUserID(userID string) ([]*KotoData, error)
 	AddKoto(koto *KotoData) error
 	EditKoto(id string, koto *KotoData) (*KotoData, error)
 	DeleteKoto(id string) error
@@ -56,7 +56,7 @@ type DataCall interface {
 
 // SimpleDataCall is a alternative of DataCall // TODO: interface for prototype
 type SimpleDataCall interface {
-	GetKotoByUserID(userID string) ([]*KotoData, error)
+	GetKotosByUserID(userID string) ([]*KotoData, error)
 	AddKoto(koto *KotoData) error
 	GetActivitiesByKotoDataID(kotoID string) ([]*ActivityData, error)
 	AddActivity(activity *ActivityData) error
@@ -77,8 +77,8 @@ func NewYaranaDataCallForTest() (*YaranaDataCallForTest, error) {
 	return &YaranaDataCallForTest{}, nil
 }
 
-// GetKotoByUserID is a method of DataCall interface
-func (c *YaranaDataCallForTest) GetKotoByUserID(userID string) ([]*KotoData, error) {
+// GetKotosByUserID is a method of DataCall interface
+func (c *YaranaDataCallForTest) GetKotosByUserID(userID string) ([]*KotoData, error) {
 	// Get Koto by userID from something
 	id := "0123456789a"
 	title := "Test Title"
