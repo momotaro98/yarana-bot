@@ -35,11 +35,11 @@ func main() {
 type Yarana struct {
 	bot        *linebot.Client
 	appBaseURL string
-	dataCall   SimpleDataCall
+	dataCall   DataCall
 }
 
 // NewYarana creates Yarana struct
-func NewYarana(channelSecret, channelToken, appBaseURL string, dataCall SimpleDataCall) (*Yarana, error) {
+func NewYarana(channelSecret, channelToken, appBaseURL string, dataCall DataCall) (*Yarana, error) {
 	apiEndpointBase := os.Getenv("ENDPOINT_BASE")
 	if apiEndpointBase == "" {
 		apiEndpointBase = linebot.APIEndpointBase

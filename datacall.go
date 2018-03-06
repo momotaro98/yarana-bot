@@ -36,7 +36,8 @@ func NewActivityData(id string, kotoID string, timeStamp time.Time) (*ActivityDa
 	}, nil
 }
 
-// DataCall is a main interface of Yarukoto
+/*
+// DataCall to be
 type DataCall interface {
 	GetKotoByID(id string) (*KotoData, error)
 	GetKotosByUserID(userID string) ([]*KotoData, error)
@@ -47,9 +48,10 @@ type DataCall interface {
 	GetActivitiesByKotoDataID(kotoID string) ([]*ActivityData, error)
 	AddActivity(activity *ActivityData) error
 }
+*/
 
-// SimpleDataCall is a alternative of DataCall // TODO: interface for prototype
-type SimpleDataCall interface {
+// DataCall is a alternative of DataCall // TODO: interface for prototype
+type DataCall interface {
 	GetKotosByUserID(userID string) ([]*KotoData, error)
 	AddKoto(koto *KotoData) error
 	GetActivitiesByKotoDataID(kotoID string) ([]*ActivityData, error)
