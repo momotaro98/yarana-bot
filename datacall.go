@@ -64,17 +64,13 @@ type YaranaDataCall struct {
 
 // TODO: Implement methods of YaranaDataCall
 
-// YaranaDataCallForTest is a test struct of DataCall for Yarana-bot
-type YaranaDataCallForTest struct {
-}
-
-// NewYaranaDataCallForTest is a constructor of YaranaDataCallForTest
-func NewYaranaDataCallForTest() (*YaranaDataCallForTest, error) {
-	return &YaranaDataCallForTest{}, nil
+// NewYaranaDataCall is a constructor of YaranaDataCall
+func NewYaranaDataCall() (*YaranaDataCall, error) {
+	return &YaranaDataCall{}, nil
 }
 
 // GetKotosByUserID is a method of DataCall interface
-func (c *YaranaDataCallForTest) GetKotosByUserID(userID string) ([]*KotoData, error) {
+func (c *YaranaDataCall) GetKotosByUserID(userID string) ([]*KotoData, error) {
 	// Get Koto by userID from something
 	id := "0123456789a"
 	title := "Test Title"
@@ -91,12 +87,12 @@ func (c *YaranaDataCallForTest) GetKotosByUserID(userID string) ([]*KotoData, er
 }
 
 // AddKoto is a method of DataCall interface
-func (c *YaranaDataCallForTest) AddKoto(koto *KotoData) error {
+func (c *YaranaDataCall) AddKoto(koto *KotoData) error {
 	return nil
 }
 
 // GetActivitiesByKotoDataID is a method of DataCall interface
-func (c *YaranaDataCallForTest) GetActivitiesByKotoDataID(kotoID string) ([]*ActivityData, error) {
+func (c *YaranaDataCall) GetActivitiesByKotoDataID(kotoID string) ([]*ActivityData, error) {
 	loc, _ := time.LoadLocation("Asia/Tokyo")
 	timeStamp := time.Date(2018, 3, 3, 3, 3, 35, 0, loc)
 	activity, err := NewActivityData("0123456789a", kotoID, timeStamp)
@@ -113,6 +109,6 @@ func (c *YaranaDataCallForTest) GetActivitiesByKotoDataID(kotoID string) ([]*Act
 }
 
 // AddActivity is a method of DataCall interface
-func (c *YaranaDataCallForTest) AddActivity(activity *ActivityData) error {
+func (c *YaranaDataCall) AddActivity(activity *ActivityData) error {
 	return nil
 }

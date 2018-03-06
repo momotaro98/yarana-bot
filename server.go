@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	dataCall, err := NewYaranaDataCallForTest()
+	dataCall, err := NewYaranaDataCall()
 	if err != nil {
 		log.Fatal(err)
 	}
