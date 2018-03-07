@@ -151,9 +151,14 @@ func (app *Yarana) handleText(message *linebot.TextMessage, replyToken string, s
 	*/
 
 	// Make text to send
+	var textToSend string
 	// textToSend = message.Text // That's "Oumugaeshi"
 	// textToSend := actsString
-	textToSend := kotos[0].Title
+	if len(kotos) == 0 || kotos == nil {
+		textToSend = "No Koto Data"
+	} else {
+		textToSend = kotos[0].Title
+	}
 
 	if _, err := app.bot.ReplyMessage(
 		replyToken,
