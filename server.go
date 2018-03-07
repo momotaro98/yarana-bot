@@ -135,16 +135,25 @@ func (app *Yarana) handleText(message *linebot.TextMessage, replyToken string, s
 	switch message.Text {
 	}
 
-	// Get Activities
-	acts, err := app.dataCall.GetActivitiesByKotoDataID("123456789") // TODO: test code
+	// Get Kotos
+	kotos, err := app.dataCall.GetKotosByUserID("d59964bb713fd6f4f5ef6a7c7e029387") // sample data in Cosmos DB
 	if err != nil {
 		return err
 	}
-	actsString := fmt.Sprint(acts)
+
+	// Get Activities
+	/*
+		acts, err := app.dataCall.GetActivitiesByKotoDataID("123456789") // TODO: test code
+		if err != nil {
+			return err
+		}
+		actsString := fmt.Sprint(acts)
+	*/
 
 	// Make text to send
 	// textToSend = message.Text // That's "Oumugaeshi"
-	textToSend := actsString
+	// textToSend := actsString
+	textToSend := kotos[0].Title
 
 	if _, err := app.bot.ReplyMessage(
 		replyToken,

@@ -1,6 +1,9 @@
 package main
 
 import (
+	"encoding/json"
+	"io/ioutil"
+	"net/http"
 	"time"
 )
 
@@ -70,7 +73,19 @@ func NewYaranaDataCall() (*YaranaDataCall, error) {
 }
 
 // GetKotosByUserID is a method of DataCall interface
-func (c *YaranaDataCall) GetKotosByUserID(userID string) ([]*KotoData, error) {
+func (c *YaranaDataCall) GetKotosByUserID(userID string) (kotos []*KotoData, err error) {
+	baseURL := "https://yarana-api.azurewebsites.net/api/" + "kotos"
+	url := AssembleURLWithParam(baseURL, "userId", userID) // get url like https://yarana-api.azurewebsites.net/api/kotos?userId=d59964bb713fd6f4f5ef6a7c7e029387
+	body, err := HTTPGet(url)
+	if err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal(body, &kotos); err != nil {
+		return nil, err
+	}
+	return kotos, nil
+
+	/* Mock implementation
 	// Get Koto by userID from something
 	id := "0123456789a"
 	title := "Test Title"
@@ -84,6 +99,26 @@ func (c *YaranaDataCall) GetKotosByUserID(userID string) ([]*KotoData, error) {
 		return nil, err
 	}
 	return []*KotoData{koto, koto2}, nil
+	*/
+}
+
+// AssembleURLWithParam makes url with parameter
+func AssembleURLWithParam(baseURL string, key string, val string) string {
+	return baseURL + "?" + key + "=" + val
+}
+
+// HTTPGet curls with arg url
+func HTTPGet(url string) (buf []byte, err error) {
+	res, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	buf, err = ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	return buf, err
 }
 
 // AddKoto is a method of DataCall interface
