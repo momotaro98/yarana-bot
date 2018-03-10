@@ -139,12 +139,7 @@ func (app *Yarana) handleText(message *linebot.TextMessage, replyToken string, s
 	userReq := NewUserTextRequest()
 	err = userReq.AnalyzeInputText(message.Text)
 	if err != nil {
-		if _, err := app.bot.ReplyMessage(
-			replyToken,
-			linebot.NewTextMessage("I'm sorry that's invalid input for me."), // TODO: Show HELP View to user
-		).Do(); err != nil {
-			return err
-		}
+		app.sorryAndShowHelp(replyToken) // TODO: Do we have to manange replyToken? because we can use replyToken only once in a request.
 		return err
 	}
 	switch reqType := userReq.Type; reqType {
@@ -248,6 +243,16 @@ func (app *Yarana) processAddActivity(replyToken string, userID string, keyword 
 	return nil
 }
 
+func (app *Yarana) sorryAndShowHelp(replyToken string) error {
+	if _, err := app.bot.ReplyMessage(
+		replyToken,
+		linebot.NewTextMessage("I'm sorry that's invalid input for me."), // TODO: Show HELP View to user
+	).Do(); err != nil {
+		return err
+	}
+	return nil
+}
+
 // UserTextRequest is struct for managing input text from user
 type UserTextRequest struct {
 	Type            string
@@ -262,7 +267,6 @@ func NewUserTextRequest() *UserTextRequest {
 // AnalyzeInputText analyzes input text from user
 func (r *UserTextRequest) AnalyzeInputText(text string) error {
 	// TODO: Implement analyzer
-	// Recognize "GetKotos" if the text starts with "GetKoto"
 	words := strings.Fields(text)
 	if len(words) < 1 {
 		return fmt.Errorf("Can't analyze: %s", text)
@@ -277,6 +281,8 @@ func (r *UserTextRequest) AnalyzeInputText(text string) error {
 		}
 		r.Type = "AddKoto"
 		r.VariableKeyword = words[1]
+	default:
+		return fmt.Errorf("Can't analyze: %s", text)
 	}
 
 	return nil
