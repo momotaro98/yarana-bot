@@ -141,6 +141,13 @@ func (app *Yarana) handleText(message *linebot.TextMessage, replyToken string, s
 		return err
 	}
 
+	// Add Koto
+	kotoToAdd, _ := NewKotoData("", source.UserID, "Demo AddKoto")
+	err = app.dataCall.AddKoto(kotoToAdd)
+	if err != nil {
+		return err
+	}
+
 	// Get Activities
 	/*
 		acts, err := app.dataCall.GetActivitiesByKotoDataID("123456789") // TODO: test code

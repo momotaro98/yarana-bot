@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"math/rand"
 	"time"
 )
 
@@ -61,11 +62,12 @@ type DataCall interface {
 
 // YaranaDataCall is a struct of DataCall for Yarana-bot
 type YaranaDataCall struct {
+	IDlen int
 }
 
 // NewYaranaDataCall is a constructor of YaranaDataCall
 func NewYaranaDataCall() (*YaranaDataCall, error) {
-	return &YaranaDataCall{}, nil
+	return &YaranaDataCall{IDlen: 32}, nil
 }
 
 // GetKotosByUserID is a method of DataCall interface
@@ -84,6 +86,16 @@ func (c *YaranaDataCall) GetKotosByUserID(userID string) (kotos []*KotoData, err
 
 // AddKoto is a method of DataCall interface
 func (c *YaranaDataCall) AddKoto(koto *KotoData) error {
+	if koto.ID == "" || len(koto.ID) != c.IDlen {
+		koto.ID = c.GenerateUniqID()
+	}
+	// Create new Koto data of a user
+	url := "https://yarana-api.azurewebsites.net/api/koto?code=G25QaGf0tEyNZgYpQ2VGFPc1xet6w/0u2rGCs7kR0fUrl6whRIm0KA=="
+	jsonBytes, _ := json.Marshal(koto)
+	err := HTTPPost(url, jsonBytes)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -107,4 +119,20 @@ func (c *YaranaDataCall) GetActivitiesByKotoDataID(kotoID string) ([]*ActivityDa
 // AddActivity is a method of DataCall interface
 func (c *YaranaDataCall) AddActivity(activity *ActivityData) error {
 	return nil
+}
+
+// init func for rand generating
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
+// GenerateUniqID generates uniq id chars
+func (c *YaranaDataCall) GenerateUniqID() (id string) {
+	var letterRunes = []rune("0123456789abcdefghijklmnopqrstuvwxyz")
+	b := make([]rune, 32)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	id = string(b)
+	return id
 }

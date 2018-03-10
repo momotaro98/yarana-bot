@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"io/ioutil"
 	"net/http"
 )
@@ -22,4 +23,28 @@ func HTTPGet(url string) (buf []byte, err error) {
 		return nil, err
 	}
 	return buf, err
+}
+
+// HTTPPost posts json contents
+func HTTPPost(url string, json []byte) error {
+	req, err := http.NewRequest(
+		"POST",
+		url,
+		bytes.NewBuffer(json),
+	)
+	if err != nil {
+		return err
+	}
+
+	// Setting of Content-Type
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	return err
 }
