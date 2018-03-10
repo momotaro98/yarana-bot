@@ -137,7 +137,16 @@ func (app *Yarana) replyText(replyToken, text string) error {
 func (app *Yarana) handleText(message *linebot.TextMessage, replyToken string, source *linebot.EventSource) (err error) {
 	// Analyze text message
 	userReq := NewUserTextRequest()
-	userReq.AnalyzeInputText(message.Text)
+	err = userReq.AnalyzeInputText(message.Text)
+	if err != nil {
+		if _, err := app.bot.ReplyMessage(
+			replyToken,
+			linebot.NewTextMessage("I'm sorry that's invalid input for me."), // TODO: Show HELP View to user
+		).Do(); err != nil {
+			return err
+		}
+		return err
+	}
 	switch reqType := userReq.Type; reqType {
 	case "GetKotos":
 		err = app.processGetKotos(replyToken, source.UserID, userReq.VariableKeyword)
