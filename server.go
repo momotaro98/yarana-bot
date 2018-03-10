@@ -10,7 +10,10 @@ import (
 )
 
 func main() {
-	dataCall, err := NewYaranaDataCall()
+	dataCall, err := NewYaranaDataCall(
+		os.Getenv("YARANA_API_BASE_URL"),
+		os.Getenv("YARANA_API_ADDKOTO_KEY"),
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -137,6 +140,13 @@ func (app *Yarana) handleText(message *linebot.TextMessage, replyToken string, s
 
 	// Get Kotos
 	kotos, err := app.dataCall.GetKotosByUserID("d59964bb713fd6f4f5ef6a7c7e029387") // sample data in Cosmos DB
+	if err != nil {
+		return err
+	}
+
+	// Add Koto
+	kotoToAdd, _ := NewKotoData("", source.UserID, "Demo AddKoto")
+	err = app.dataCall.AddKoto(kotoToAdd)
 	if err != nil {
 		return err
 	}

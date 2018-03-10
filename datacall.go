@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"math/rand"
 	"time"
 )
 
@@ -61,17 +62,24 @@ type DataCall interface {
 
 // YaranaDataCall is a struct of DataCall for Yarana-bot
 type YaranaDataCall struct {
+	apiBaseURL    string
+	idLen         int
+	keyForAddKoto string
 }
 
 // NewYaranaDataCall is a constructor of YaranaDataCall
-func NewYaranaDataCall() (*YaranaDataCall, error) {
-	return &YaranaDataCall{}, nil
+func NewYaranaDataCall(apiBaseURL string, keyForAddKoto string) (*YaranaDataCall, error) {
+	return &YaranaDataCall{
+		apiBaseURL:    apiBaseURL,
+		idLen:         32,
+		keyForAddKoto: keyForAddKoto,
+	}, nil
 }
 
 // GetKotosByUserID is a method of DataCall interface
 func (c *YaranaDataCall) GetKotosByUserID(userID string) (kotos []*KotoData, err error) {
-	baseURL := "https://yarana-api.azurewebsites.net/api/" + "kotos"
-	url := AssembleURLWithParam(baseURL, "userId", userID) // get url like https://yarana-api.azurewebsites.net/api/kotos?userId=d59964bb713fd6f4f5ef6a7c7e029387
+	baseURL := c.apiBaseURL + "kotos"
+	url := AssembleURLWithParam(baseURL, "userId", userID)
 	body, err := HTTPGet(url)
 	if err != nil {
 		return nil, err
@@ -84,6 +92,19 @@ func (c *YaranaDataCall) GetKotosByUserID(userID string) (kotos []*KotoData, err
 
 // AddKoto is a method of DataCall interface
 func (c *YaranaDataCall) AddKoto(koto *KotoData) error {
+	if koto.ID == "" || len(koto.ID) != c.idLen {
+		koto.ID = c.GenerateUniqID()
+	}
+	// Create new Koto data of a user
+	url := c.apiBaseURL + "koto"
+	if c.keyForAddKoto != "" {
+		url = AssembleURLWithParam(url, "code", c.keyForAddKoto)
+	}
+	jsonBytes, _ := json.Marshal(koto)
+	err := HTTPPost(url, jsonBytes)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -107,4 +128,20 @@ func (c *YaranaDataCall) GetActivitiesByKotoDataID(kotoID string) ([]*ActivityDa
 // AddActivity is a method of DataCall interface
 func (c *YaranaDataCall) AddActivity(activity *ActivityData) error {
 	return nil
+}
+
+// init func for rand generating
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
+// GenerateUniqID generates uniq id chars
+func (c *YaranaDataCall) GenerateUniqID() (id string) {
+	var letterRunes = []rune("0123456789abcdefghijklmnopqrstuvwxyz")
+	b := make([]rune, 32)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	id = string(b)
+	return id
 }
