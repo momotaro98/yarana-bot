@@ -133,43 +133,57 @@ func (app *Yarana) replyText(replyToken, text string) error {
 	return nil
 }
 
-func (app *Yarana) handleText(message *linebot.TextMessage, replyToken string, source *linebot.EventSource) error {
-	// Handle user input
-	switch message.Text {
-	}
-
-	// Get Kotos
-	kotos, err := app.dataCall.GetKotosByUserID("d59964bb713fd6f4f5ef6a7c7e029387") // sample data in Cosmos DB
+func (app *Yarana) handleText(message *linebot.TextMessage, replyToken string, source *linebot.EventSource) (err error) {
+	// Analyze text message
+	userReq := NewUserTextRequest()
+	err = userReq.AnalyzeInputText(message.Text)
 	if err != nil {
-		return err
+		app.sorryAndShowHelp(replyToken) // TODO: Do we have to manange replyToken? because we can use replyToken only once in a request.
+		return nil                       // regard invalid text for parsing as no error
 	}
-
-	// Add Koto
-	kotoToAdd, _ := NewKotoData("", source.UserID, "Demo AddKoto")
-	err = app.dataCall.AddKoto(kotoToAdd)
-	if err != nil {
-		return err
-	}
-
-	// Get Activities
-	/*
-		acts, err := app.dataCall.GetActivitiesByKotoDataID("123456789") // TODO: test code
+	switch userReq.Type {
+	case RequstTypeGetKotos:
+		err = app.processGetKotos(replyToken, source.UserID, userReq.VariableKeyword)
 		if err != nil {
 			return err
 		}
-		actsString := fmt.Sprint(acts)
-	*/
+	case RequstTypeAddKoto:
+		err = app.processAddKoto(replyToken, source.UserID, userReq.VariableKeyword)
+		if err != nil {
+			return err
+		}
+	case RequstTypeGetActivities:
+		err = app.processGetActivities(replyToken, source.UserID, userReq.VariableKeyword)
+		if err != nil {
+			return err
+		}
+	case RequstTypeAddActivity:
+		err = app.processAddActivity(replyToken, source.UserID, userReq.VariableKeyword)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (app *Yarana) handleImage(message *linebot.ImageMessage, replyToken string) error {
+	return nil
+}
+
+func (app *Yarana) processGetKotos(replyToken string, userID string, keyword string) error {
+	// Get Kotos
+	kotos, err := app.dataCall.GetKotosByUserID(userID)
+	if err != nil {
+		return err
+	}
 
 	// Make text to send
 	var textToSend string
-	// textToSend = message.Text // That's "Oumugaeshi"
-	// textToSend := actsString
 	if len(kotos) == 0 || kotos == nil {
 		textToSend = "No Koto Data"
 	} else {
 		textToSend = kotos[0].Title
 	}
-
 	if _, err := app.bot.ReplyMessage(
 		replyToken,
 		linebot.NewTextMessage(textToSend),
@@ -179,6 +193,61 @@ func (app *Yarana) handleText(message *linebot.TextMessage, replyToken string, s
 	return nil
 }
 
-func (app *Yarana) handleImage(message *linebot.ImageMessage, replyToken string) error {
+func (app *Yarana) processAddKoto(replyToken string, userID string, keyword string) error {
+	kotoToAdd, _ := NewKotoData("", userID, keyword)
+	errChan := make(chan error, 1)
+
+	// Add Koto Data
+	go func() {
+		err := app.dataCall.AddKoto(kotoToAdd)
+		errChan <- err
+	}()
+
+	var textToSend string
+
+	err := <-errChan
+	if err != nil {
+		textToSend = "I'm sorry I failed to add your new やること."
+		if _, err := app.bot.ReplyMessage(
+			replyToken,
+			linebot.NewTextMessage(textToSend),
+		).Do(); err != nil {
+			return err
+		}
+		return err
+	}
+	textToSend = "I added your new やること"
+	if _, err := app.bot.ReplyMessage(
+		replyToken,
+		linebot.NewTextMessage(textToSend),
+	).Do(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (app *Yarana) processGetActivities(replyToken string, userID string, keyword string) error {
+	/*
+		acts, err := app.dataCall.GetActivitiesByKotoDataID("123456789") // TODO: test code
+		if err != nil {
+			return err
+		}
+		actsString := fmt.Sprint(acts)
+	*/
+	return nil
+}
+
+func (app *Yarana) processAddActivity(replyToken string, userID string, keyword string) error {
+	return nil
+}
+
+func (app *Yarana) sorryAndShowHelp(replyToken string) error {
+	if _, err := app.bot.ReplyMessage(
+		replyToken,
+		linebot.NewTextMessage("I'm sorry that's invalid input for me."), // TODO: Show HELP View to user
+	).Do(); err != nil {
+		return err
+	}
 	return nil
 }
