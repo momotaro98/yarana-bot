@@ -191,28 +191,20 @@ func (app *Yarana) processGetKotos(replyToken string, userID string, keyword str
 }
 
 func (app *Yarana) processAddKoto(replyToken string, userID string, keyword string) error {
-	// Add Koto
 	kotoToAdd, _ := NewKotoData("", userID, keyword)
 	errChan := make(chan error, 1)
 
+	// Add Koto Data
 	go func() {
 		err := app.dataCall.AddKoto(kotoToAdd)
 		errChan <- err
 	}()
 
-	// Make text to send
 	var textToSend string
-	textToSend = "I'm adding your new やること."
-	if _, err := app.bot.ReplyMessage(
-		replyToken,
-		linebot.NewTextMessage(textToSend),
-	).Do(); err != nil {
-		return err
-	}
 
 	err := <-errChan
 	if err != nil {
-		textToSend = "I'm sorry I failed to add it."
+		textToSend = "I'm sorry I failed to add your new やること."
 		if _, err := app.bot.ReplyMessage(
 			replyToken,
 			linebot.NewTextMessage(textToSend),
@@ -221,7 +213,7 @@ func (app *Yarana) processAddKoto(replyToken string, userID string, keyword stri
 		}
 		return err // TODO: I wonder the `err` scope. app.bot.ReplyMessage error or app.dataCall.AddKoto error?
 	}
-	textToSend = "I added it."
+	textToSend = "I added your new やること"
 	if _, err := app.bot.ReplyMessage(
 		replyToken,
 		linebot.NewTextMessage(textToSend),
