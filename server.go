@@ -214,7 +214,7 @@ func (app *Yarana) processAddKoto(replyToken string, userID string, keyword stri
 		).Do(); err != nil {
 			return err
 		}
-		return err // TODO: I wonder the `err` scope. app.bot.ReplyMessage error or app.dataCall.AddKoto error?
+		return err
 	}
 	textToSend = "I added your new やること"
 	if _, err := app.bot.ReplyMessage(
