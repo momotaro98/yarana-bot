@@ -10,7 +10,10 @@ import (
 )
 
 func main() {
-	dataCall, err := NewYaranaDataCall()
+	dataCall, err := NewYaranaDataCall(
+		os.Getenv("YARANA_API_BASE_URL"),
+		os.Getenv("YARANA_API_ADDKOTO_KEY"),
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
