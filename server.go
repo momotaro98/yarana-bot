@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/line/line-bot-sdk-go/linebot"
 )
@@ -133,43 +134,53 @@ func (app *Yarana) replyText(replyToken, text string) error {
 	return nil
 }
 
-func (app *Yarana) handleText(message *linebot.TextMessage, replyToken string, source *linebot.EventSource) error {
-	// Handle user input
-	switch message.Text {
-	}
-
-	// Get Kotos
-	kotos, err := app.dataCall.GetKotosByUserID("d59964bb713fd6f4f5ef6a7c7e029387") // sample data in Cosmos DB
-	if err != nil {
-		return err
-	}
-
-	// Add Koto
-	kotoToAdd, _ := NewKotoData("", source.UserID, "Demo AddKoto")
-	err = app.dataCall.AddKoto(kotoToAdd)
-	if err != nil {
-		return err
-	}
-
-	// Get Activities
-	/*
-		acts, err := app.dataCall.GetActivitiesByKotoDataID("123456789") // TODO: test code
+func (app *Yarana) handleText(message *linebot.TextMessage, replyToken string, source *linebot.EventSource) (err error) {
+	// Analyze text message
+	userReq := NewUserTextRequest()
+	userReq.AnalyzeInputText(message.Text)
+	switch reqType := userReq.Type; reqType {
+	case "GetKotos":
+		err = app.processGetKotos(replyToken, source.UserID, userReq.VariableKeyword)
 		if err != nil {
 			return err
 		}
-		actsString := fmt.Sprint(acts)
-	*/
+	case "AddKoto":
+		err = app.processAddKoto(replyToken, source.UserID, userReq.VariableKeyword)
+		if err != nil {
+			return err
+		}
+	case "GetActivities":
+		err = app.processGetActivities(replyToken, source.UserID, userReq.VariableKeyword)
+		if err != nil {
+			return err
+		}
+	case "AddActivity":
+		err = app.processAddActivity(replyToken, source.UserID, userReq.VariableKeyword)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (app *Yarana) handleImage(message *linebot.ImageMessage, replyToken string) error {
+	return nil
+}
+
+func (app *Yarana) processGetKotos(replyToken string, userID string, keyword string) error {
+	// Get Kotos
+	kotos, err := app.dataCall.GetKotosByUserID(userID)
+	if err != nil {
+		return err
+	}
 
 	// Make text to send
 	var textToSend string
-	// textToSend = message.Text // That's "Oumugaeshi"
-	// textToSend := actsString
 	if len(kotos) == 0 || kotos == nil {
 		textToSend = "No Koto Data"
 	} else {
 		textToSend = kotos[0].Title
 	}
-
 	if _, err := app.bot.ReplyMessage(
 		replyToken,
 		linebot.NewTextMessage(textToSend),
@@ -179,6 +190,93 @@ func (app *Yarana) handleText(message *linebot.TextMessage, replyToken string, s
 	return nil
 }
 
-func (app *Yarana) handleImage(message *linebot.ImageMessage, replyToken string) error {
+func (app *Yarana) processAddKoto(replyToken string, userID string, keyword string) error {
+	// Add Koto
+	kotoToAdd, _ := NewKotoData("", userID, keyword)
+	errChan := make(chan error, 1)
+
+	go func() {
+		err := app.dataCall.AddKoto(kotoToAdd)
+		errChan <- err
+	}()
+
+	// Make text to send
+	var textToSend string
+	textToSend = "I'm adding your new やること."
+	if _, err := app.bot.ReplyMessage(
+		replyToken,
+		linebot.NewTextMessage(textToSend),
+	).Do(); err != nil {
+		return err
+	}
+
+	err := <-errChan
+	if err != nil {
+		textToSend = "I'm sorry I failed to add it."
+		if _, err := app.bot.ReplyMessage(
+			replyToken,
+			linebot.NewTextMessage(textToSend),
+		).Do(); err != nil {
+			return err
+		}
+		return err // TODO: I wonder the `err` scope. app.bot.ReplyMessage error or app.dataCall.AddKoto error?
+	}
+	textToSend = "I added it."
+	if _, err := app.bot.ReplyMessage(
+		replyToken,
+		linebot.NewTextMessage(textToSend),
+	).Do(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (app *Yarana) processGetActivities(replyToken string, userID string, keyword string) error {
+	/*
+		acts, err := app.dataCall.GetActivitiesByKotoDataID("123456789") // TODO: test code
+		if err != nil {
+			return err
+		}
+		actsString := fmt.Sprint(acts)
+	*/
+	return nil
+}
+
+func (app *Yarana) processAddActivity(replyToken string, userID string, keyword string) error {
+	return nil
+}
+
+// UserTextRequest is struct for managing input text from user
+type UserTextRequest struct {
+	Type            string
+	VariableKeyword string
+}
+
+// NewUserTextRequest is constructor of KotoData
+func NewUserTextRequest() *UserTextRequest {
+	return &UserTextRequest{}
+}
+
+// AnalyzeInputText analyzes input text from user
+func (r *UserTextRequest) AnalyzeInputText(text string) error {
+	// TODO: Implement analyzer
+	// Recognize "GetKotos" if the text starts with "GetKoto"
+	words := strings.Fields(text)
+	if len(words) < 1 {
+		return fmt.Errorf("Can't analyze: %s", text)
+	}
+
+	switch fWord := words[0]; fWord {
+	case "GetKotos":
+		r.Type = "GetKotos"
+	case "AddKoto":
+		if len(words) < 2 {
+			return fmt.Errorf("Can't analyze: %s", text)
+		}
+		r.Type = "AddKoto"
+		r.VariableKeyword = words[1]
+	}
+
 	return nil
 }
