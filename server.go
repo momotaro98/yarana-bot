@@ -265,9 +265,11 @@ func (app *Yarana) processGetActivities(replyToken string, userID string, keywor
 	// Make text to send
 	var textToSend string
 	for acts := range activitiesChannel {
-		textToSend = textToSend + acts[0].KotoID + "\n"
-		for _, act := range acts {
-			textToSend = textToSend + act.TimeStamp.String() + "\n"
+		if len(acts) > 0 {
+			textToSend = textToSend + "KotoID: " + acts[0].KotoID + "\n"
+			for _, act := range acts {
+				textToSend = textToSend + act.TimeStamp.String() + "\n"
+			}
 		}
 	}
 	// Reply to user
