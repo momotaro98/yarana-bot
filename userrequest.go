@@ -44,6 +44,11 @@ func (r *UserTextRequest) AnalyzeInputText(text string) error {
 		}
 		r.Type = RequstTypeAddKoto
 		r.VariableKeyword = words[1]
+	case "GetActivities":
+		r.Type = RequstTypeGetActivities
+		if len(words) >= 2 {
+			r.VariableKeyword = words[1]
+		}
 	default:
 		return fmt.Errorf("Can't analyze: %s", text)
 	}

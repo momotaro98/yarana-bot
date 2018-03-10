@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync"
 
 	"github.com/line/line-bot-sdk-go/linebot"
 )
@@ -228,13 +229,57 @@ func (app *Yarana) processAddKoto(replyToken string, userID string, keyword stri
 }
 
 func (app *Yarana) processGetActivities(replyToken string, userID string, keyword string) error {
-	/*
-		acts, err := app.dataCall.GetActivitiesByKotoDataID("123456789") // TODO: test code
-		if err != nil {
-			return err
+	// Get Kotos at first
+	kotos, err := app.dataCall.GetKotosByUserID(userID)
+	if err != nil {
+		return err
+	}
+	var specifiedKotoID string
+	for _, koto := range kotos {
+		if koto.Title == keyword {
+			specifiedKotoID = koto.ID
 		}
-		actsString := fmt.Sprint(acts)
-	*/
+	}
+	var kotoIDList []string
+	if specifiedKotoID != "" {
+		kotoIDList = append(kotoIDList, specifiedKotoID)
+	} else {
+		for _, koto := range kotos {
+			kotoIDList = append(kotoIDList, koto.ID)
+		}
+	}
+	// Get Activities in parallel
+	activitiesChannel := make(chan []*ActivityData, len(kotoIDList))
+	wg := &sync.WaitGroup{}
+	for _, kotoID := range kotoIDList {
+		wg.Add(1)
+		go func(kotoId string) {
+			acts, _ := app.dataCall.GetActivitiesByKotoDataID(kotoId)
+			activitiesChannel <- acts
+			wg.Done()
+		}(kotoID)
+	}
+	wg.Wait()
+	close(activitiesChannel)
+
+	// Make text to send
+	var textToSend string
+	for acts := range activitiesChannel {
+		if len(acts) > 0 {
+			textToSend = textToSend + "KotoID: " + acts[0].KotoID + "\n"
+			for _, act := range acts {
+				textToSend = textToSend + act.TimeStamp.String() + "\n"
+			}
+		}
+	}
+	// Reply to user
+	if _, err := app.bot.ReplyMessage(
+		replyToken,
+		linebot.NewTextMessage(textToSend),
+	).Do(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
