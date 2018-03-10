@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/line/line-bot-sdk-go/linebot"
 )
@@ -140,25 +139,25 @@ func (app *Yarana) handleText(message *linebot.TextMessage, replyToken string, s
 	err = userReq.AnalyzeInputText(message.Text)
 	if err != nil {
 		app.sorryAndShowHelp(replyToken) // TODO: Do we have to manange replyToken? because we can use replyToken only once in a request.
-		return err
+		return nil                       // regard invalid text for parsing as no error
 	}
-	switch reqType := userReq.Type; reqType {
-	case "GetKotos":
+	switch userReq.Type {
+	case RequstTypeGetKotos:
 		err = app.processGetKotos(replyToken, source.UserID, userReq.VariableKeyword)
 		if err != nil {
 			return err
 		}
-	case "AddKoto":
+	case RequstTypeAddKoto:
 		err = app.processAddKoto(replyToken, source.UserID, userReq.VariableKeyword)
 		if err != nil {
 			return err
 		}
-	case "GetActivities":
+	case RequstTypeGetActivities:
 		err = app.processGetActivities(replyToken, source.UserID, userReq.VariableKeyword)
 		if err != nil {
 			return err
 		}
-	case "AddActivity":
+	case RequstTypeAddActivity:
 		err = app.processAddActivity(replyToken, source.UserID, userReq.VariableKeyword)
 		if err != nil {
 			return err
@@ -250,40 +249,5 @@ func (app *Yarana) sorryAndShowHelp(replyToken string) error {
 	).Do(); err != nil {
 		return err
 	}
-	return nil
-}
-
-// UserTextRequest is struct for managing input text from user
-type UserTextRequest struct {
-	Type            string
-	VariableKeyword string
-}
-
-// NewUserTextRequest is constructor of KotoData
-func NewUserTextRequest() *UserTextRequest {
-	return &UserTextRequest{}
-}
-
-// AnalyzeInputText analyzes input text from user
-func (r *UserTextRequest) AnalyzeInputText(text string) error {
-	// TODO: Implement analyzer
-	words := strings.Fields(text)
-	if len(words) < 1 {
-		return fmt.Errorf("Can't analyze: %s", text)
-	}
-
-	switch fWord := words[0]; fWord {
-	case "GetKotos":
-		r.Type = "GetKotos"
-	case "AddKoto":
-		if len(words) < 2 {
-			return fmt.Errorf("Can't analyze: %s", text)
-		}
-		r.Type = "AddKoto"
-		r.VariableKeyword = words[1]
-	default:
-		return fmt.Errorf("Can't analyze: %s", text)
-	}
-
 	return nil
 }
