@@ -24,17 +24,17 @@ func NewKotoData(id string, userID string, title string) (*KotoData, error) {
 
 // ActivityData is DTO of user activity for KotoData
 type ActivityData struct {
-	ID         string
-	KotoDataID string
-	TimeStamp  time.Time
+	ID        string    `json:"id"`
+	KotoID    string    `json:"kotoId"`
+	TimeStamp time.Time `json:"timestamp"`
 }
 
 // NewActivityData is constructor of ActivityData
 func NewActivityData(id string, kotoID string, timeStamp time.Time) (*ActivityData, error) {
 	return &ActivityData{
-		ID:         id,
-		KotoDataID: kotoID,
-		TimeStamp:  timeStamp,
+		ID:        id,
+		KotoID:    kotoID,
+		TimeStamp: timeStamp,
 	}, nil
 }
 
@@ -109,20 +109,17 @@ func (c *YaranaDataCall) AddKoto(koto *KotoData) error {
 }
 
 // GetActivitiesByKotoDataID is a method of DataCall interface
-func (c *YaranaDataCall) GetActivitiesByKotoDataID(kotoID string) ([]*ActivityData, error) {
-	loc, _ := time.LoadLocation("Asia/Tokyo")
-	timeStamp := time.Date(2018, 3, 3, 3, 3, 35, 0, loc)
-	activity, err := NewActivityData("0123456789a", kotoID, timeStamp)
+func (c *YaranaDataCall) GetActivitiesByKotoDataID(kotoID string) (activities []*ActivityData, err error) {
+	baseURL := c.apiBaseURL + "activities"
+	url := AssembleURLWithParam(baseURL, "kotoId", kotoID)
+	body, err := HTTPGet(url)
 	if err != nil {
 		return nil, err
 	}
-	loc2, _ := time.LoadLocation("Asia/Tokyo")
-	timeStamp2 := time.Date(2018, 3, 3, 3, 3, 36, 0, loc2)
-	activity2, err := NewActivityData("0123456789b", kotoID, timeStamp2)
-	if err != nil {
+	if err := json.Unmarshal(body, &activities); err != nil {
 		return nil, err
 	}
-	return []*ActivityData{activity, activity2}, nil
+	return activities, nil
 }
 
 // AddActivity is a method of DataCall interface
