@@ -62,17 +62,19 @@ type DataCall interface {
 
 // YaranaDataCall is a struct of DataCall for Yarana-bot
 type YaranaDataCall struct {
-	apiBaseURL    string
-	idLen         int
-	keyForAddKoto string
+	apiBaseURL        string
+	idLen             int
+	keyForAddKoto     string
+	keyForAddActivity string
 }
 
 // NewYaranaDataCall is a constructor of YaranaDataCall
-func NewYaranaDataCall(apiBaseURL string, keyForAddKoto string) (*YaranaDataCall, error) {
+func NewYaranaDataCall(apiBaseURL string, keyForAddKoto string, keyForAddActivity string) (*YaranaDataCall, error) {
 	return &YaranaDataCall{
-		apiBaseURL:    apiBaseURL,
-		idLen:         32,
-		keyForAddKoto: keyForAddKoto,
+		apiBaseURL:        apiBaseURL,
+		idLen:             32,
+		keyForAddKoto:     keyForAddKoto,
+		keyForAddActivity: keyForAddActivity,
 	}, nil
 }
 
@@ -124,6 +126,19 @@ func (c *YaranaDataCall) GetActivitiesByKotoDataID(kotoID string) (activities []
 
 // AddActivity is a method of DataCall interface
 func (c *YaranaDataCall) AddActivity(activity *ActivityData) error {
+	if activity.ID == "" || len(activity.ID) != c.idLen {
+		activity.ID = c.GenerateUniqID()
+	}
+	// Create new Activity data
+	url := c.apiBaseURL + "activity"
+	if c.keyForAddActivity != "" {
+		url = AssembleURLWithParam(url, "code", c.keyForAddActivity)
+	}
+	jsonBytes, _ := json.Marshal(activity)
+	err := HTTPPost(url, jsonBytes)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

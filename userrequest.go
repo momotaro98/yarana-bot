@@ -49,6 +49,12 @@ func (r *UserTextRequest) AnalyzeInputText(text string) error {
 		if len(words) >= 2 {
 			r.VariableKeyword = words[1]
 		}
+	case "AddActivity":
+		if len(words) < 2 {
+			return fmt.Errorf("Can't analyze: %s", text)
+		}
+		r.Type = RequstTypeAddActivity
+		r.VariableKeyword = words[1]
 	default:
 		return fmt.Errorf("Can't analyze: %s", text)
 	}
