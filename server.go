@@ -293,6 +293,11 @@ func (app *Yarana) processAddActivity(replyToken string, userID string, keyword 
 			specifiedKotoID = koto.ID
 		}
 	}
+	// Stop process if koto.Title doesn't exist in the user's data
+	if specifiedKotoID == "" {
+		app.replySorryAndShowHelp(replyToken, fmt.Sprintf("You don't have the やること: %s", keyword))
+		return fmt.Errorf("Not found \"%s\" in the user", keyword)
+	}
 	// Make a new Activity object
 	activityToAdd, _ := NewActivityData("", specifiedKotoID, time.Now())
 	// Add Activity Data
