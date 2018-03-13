@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/line/line-bot-sdk-go/linebot"
 )
@@ -14,6 +15,7 @@ func main() {
 	dataCall, err := NewYaranaDataCall(
 		os.Getenv("YARANA_API_BASE_URL"),
 		os.Getenv("YARANA_API_ADDKOTO_KEY"),
+		os.Getenv("YARANA_API_ADDACTIVITY_KEY"),
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -139,8 +141,8 @@ func (app *Yarana) handleText(message *linebot.TextMessage, replyToken string, s
 	userReq := NewUserTextRequest()
 	err = userReq.AnalyzeInputText(message.Text)
 	if err != nil {
-		app.sorryAndShowHelp(replyToken) // TODO: Do we have to manange replyToken? because we can use replyToken only once in a request.
-		return nil                       // regard invalid text for parsing as no error
+		app.replySorryAndShowHelp(replyToken, "I'm sorry that's invalid input for me.") // TODO: Do we have to manange replyToken? because we can use replyToken only once in a request.
+		return nil                                                                      // regard invalid text for parsing as no error
 	}
 	switch userReq.Type {
 	case RequstTypeGetKotos:
@@ -208,13 +210,7 @@ func (app *Yarana) processAddKoto(replyToken string, userID string, keyword stri
 
 	err := <-errChan
 	if err != nil {
-		textToSend = "I'm sorry I failed to add your new やること."
-		if _, err := app.bot.ReplyMessage(
-			replyToken,
-			linebot.NewTextMessage(textToSend),
-		).Do(); err != nil {
-			return err
-		}
+		app.replySorry(replyToken, "I'm sorry I failed to add your new やること.")
 		return err
 	}
 	textToSend = "I added your new やること"
@@ -234,6 +230,7 @@ func (app *Yarana) processGetActivities(replyToken string, userID string, keywor
 	if err != nil {
 		return err
 	}
+	// Get specified Koto ID
 	var specifiedKotoID string
 	for _, koto := range kotos {
 		if koto.Title == keyword {
@@ -284,13 +281,67 @@ func (app *Yarana) processGetActivities(replyToken string, userID string, keywor
 }
 
 func (app *Yarana) processAddActivity(replyToken string, userID string, keyword string) error {
+	// Get Kotos at first
+	kotos, err := app.dataCall.GetKotosByUserID(userID)
+	if err != nil {
+		return err
+	}
+	// Get specified Koto ID
+	var specifiedKotoID string
+	for _, koto := range kotos {
+		if koto.Title == keyword {
+			specifiedKotoID = koto.ID
+		}
+	}
+	// Stop process if koto.Title doesn't exist in the user's data
+	if specifiedKotoID == "" {
+		app.replySorryAndShowHelp(replyToken, fmt.Sprintf("You don't have the やること: %s", keyword))
+		return fmt.Errorf("Not found \"%s\" in the user", keyword)
+	}
+	// Make a new Activity object
+	activityToAdd, _ := NewActivityData("", specifiedKotoID, time.Now())
+	// Add Activity Data
+	errChan := make(chan error, 1)
+	go func() {
+		err := app.dataCall.AddActivity(activityToAdd)
+		errChan <- err
+	}()
+	err = <-errChan
+	if err != nil {
+		app.replySorry(replyToken, "I'm sorry I failed to add your new アクティビティ.")
+		return err
+	}
+	// Make text to send
+	var textToSend string
+	textToSend = "I added your new アクティビティ"
+	// Reply to user
+	if _, err := app.bot.ReplyMessage(
+		replyToken,
+		linebot.NewTextMessage(textToSend),
+	).Do(); err != nil {
+		return err
+	}
 	return nil
 }
 
-func (app *Yarana) sorryAndShowHelp(replyToken string) error {
+func (app *Yarana) replySorryAndShowHelp(replyToken string, sorryMessage string) error {
+	var textToSend string
+	textToSend = sorryMessage
 	if _, err := app.bot.ReplyMessage(
 		replyToken,
-		linebot.NewTextMessage("I'm sorry that's invalid input for me."), // TODO: Show HELP View to user
+		linebot.NewTextMessage(textToSend), // TODO: Show HELP View to user
+	).Do(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (app *Yarana) replySorry(replyToken string, sorryMessage string) error {
+	var textToSend string
+	textToSend = sorryMessage
+	if _, err := app.bot.ReplyMessage(
+		replyToken,
+		linebot.NewTextMessage(textToSend),
 	).Do(); err != nil {
 		return err
 	}
