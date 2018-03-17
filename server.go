@@ -142,8 +142,8 @@ func (app *Yarana) handleText(message *linebot.TextMessage, replyToken string, s
 	userReq := NewUserTextRequest()
 	err = userReq.AnalyzeInputText(message.Text)
 	if err != nil {
-		app.replySorryAndShowHelp(replyToken, "I'm sorry that's invalid input for me.") // TODO: Do we have to manange replyToken? because we can use replyToken only once in a request.
-		return nil                                                                      // regard invalid text for parsing as no error
+		app.replyWithHelp(replyToken, "I'm sorry that's invalid input for me.") // TODO: Do we have to manange replyToken? because we can use replyToken only once in a request.
+		return nil                                                              // regard invalid text for parsing as no error
 	}
 	switch userReq.Type {
 	case RequstTypeGetKotos:
@@ -180,15 +180,15 @@ func (app *Yarana) processGetKotos(replyToken string, userID string, keyword str
 	if err != nil {
 		return err
 	}
+	if len(kotos) == 0 || kotos == nil {
+		app.replyWithHelp(replyToken, "No Koto Data. Please add your やること.") // TODO: Show help
+		return fmt.Errorf("No Koto data in the user")
+	}
 
 	// Make text to send
 	var textToSend string
-	if len(kotos) == 0 || kotos == nil {
-		textToSend = "No Koto Data. Please add your やること."
-	} else {
-		for _, koto := range kotos {
-			textToSend = textToSend + koto.Title + "\n"
-		}
+	for _, koto := range kotos {
+		textToSend = textToSend + koto.Title + "\n"
 	}
 	if _, err := app.bot.ReplyMessage(
 		replyToken,
@@ -233,6 +233,11 @@ func (app *Yarana) processGetActivities(replyToken string, userID string, keywor
 	if err != nil {
 		return err
 	}
+	if len(kotos) == 0 || kotos == nil {
+		app.replyWithHelp(replyToken, "No Koto Data. Please add your やること.") // TODO: Show help
+		return fmt.Errorf("No Koto data in the user")
+	}
+
 	// Get specified Koto ID
 	var specifiedKotoID string
 	for _, koto := range kotos {
@@ -299,6 +304,11 @@ func (app *Yarana) processAddActivity(replyToken string, userID string, keyword 
 	if err != nil {
 		return err
 	}
+	if len(kotos) == 0 || kotos == nil {
+		app.replyWithHelp(replyToken, "No Koto Data. Please add your やること.") // TODO: Show help
+		return fmt.Errorf("No Koto data in the user")
+	}
+
 	// Get specified Koto ID
 	var specifiedKotoID string
 	for _, koto := range kotos {
@@ -308,7 +318,7 @@ func (app *Yarana) processAddActivity(replyToken string, userID string, keyword 
 	}
 	// Stop process if koto.Title doesn't exist in the user's data
 	if specifiedKotoID == "" {
-		app.replySorryAndShowHelp(replyToken, fmt.Sprintf("You don't have the やること, %s", keyword))
+		app.replyWithHelp(replyToken, fmt.Sprintf("You don't have the やること, %s", keyword)) // TODO: show user's all やること
 		return fmt.Errorf("Not found \"%s\" in the user", keyword)
 	}
 	// Make a new Activity object
@@ -337,9 +347,9 @@ func (app *Yarana) processAddActivity(replyToken string, userID string, keyword 
 	return nil
 }
 
-func (app *Yarana) replySorryAndShowHelp(replyToken string, sorryMessage string) error {
+func (app *Yarana) replyWithHelp(replyToken string, message string) error {
 	var textToSend string
-	textToSend = sorryMessage
+	textToSend = message
 	if _, err := app.bot.ReplyMessage(
 		replyToken,
 		linebot.NewTextMessage(textToSend), // TODO: Show HELP View to user
