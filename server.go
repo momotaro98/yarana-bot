@@ -183,9 +183,11 @@ func (app *Yarana) processGetKotos(replyToken string, userID string, keyword str
 	// Make text to send
 	var textToSend string
 	if len(kotos) == 0 || kotos == nil {
-		textToSend = "No Koto Data"
+		textToSend = "No Koto Data. Please add your Koto."
 	} else {
-		textToSend = kotos[0].Title
+		for _, koto := range kotos {
+			textToSend = textToSend + koto.Title + "\n"
+		}
 	}
 	if _, err := app.bot.ReplyMessage(
 		replyToken,
