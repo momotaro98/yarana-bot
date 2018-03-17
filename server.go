@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -141,8 +142,8 @@ func (app *Yarana) handleText(message *linebot.TextMessage, replyToken string, s
 	userReq := NewUserTextRequest()
 	err = userReq.AnalyzeInputText(message.Text)
 	if err != nil {
-		app.replySorryAndShowHelp(replyToken, "I'm sorry that's invalid input for me.") // TODO: Do we have to manange replyToken? because we can use replyToken only once in a request.
-		return nil                                                                      // regard invalid text for parsing as no error
+		app.replyWithHelp(replyToken, "I'm sorry that's invalid input for me.") // TODO: Do we have to manange replyToken? because we can use replyToken only once in a request.
+		return nil                                                              // regard invalid text for parsing as no error
 	}
 	switch userReq.Type {
 	case RequstTypeGetKotos:
@@ -179,17 +180,19 @@ func (app *Yarana) processGetKotos(replyToken string, userID string, keyword str
 	if err != nil {
 		return err
 	}
+	if len(kotos) == 0 || kotos == nil {
+		app.replyWithHelp(replyToken, "No Koto Data. Please add your やること.") // TODO: Show help
+		return fmt.Errorf("No Koto data in the user")
+	}
 
 	// Make text to send
 	var textToSend string
-	if len(kotos) == 0 || kotos == nil {
-		textToSend = "No Koto Data"
-	} else {
-		textToSend = kotos[0].Title
+	for _, koto := range kotos {
+		textToSend = textToSend + koto.Title + "\n"
 	}
 	if _, err := app.bot.ReplyMessage(
 		replyToken,
-		linebot.NewTextMessage(textToSend),
+		linebot.NewTextMessage(strings.TrimSpace(textToSend)),
 	).Do(); err != nil {
 		return err
 	}
@@ -210,13 +213,13 @@ func (app *Yarana) processAddKoto(replyToken string, userID string, keyword stri
 
 	err := <-errChan
 	if err != nil {
-		app.replySorry(replyToken, "I'm sorry I failed to add your new やること.")
+		app.replySorry(replyToken, fmt.Sprintf("I'm sorry I failed to add your new やること, %s.", keyword))
 		return err
 	}
-	textToSend = "I added your new やること"
+	textToSend = fmt.Sprintf("I added your new やること, %s", keyword)
 	if _, err := app.bot.ReplyMessage(
 		replyToken,
-		linebot.NewTextMessage(textToSend),
+		linebot.NewTextMessage(strings.TrimSpace(textToSend)),
 	).Do(); err != nil {
 		return err
 	}
@@ -230,6 +233,11 @@ func (app *Yarana) processGetActivities(replyToken string, userID string, keywor
 	if err != nil {
 		return err
 	}
+	if len(kotos) == 0 || kotos == nil {
+		app.replyWithHelp(replyToken, "No Koto Data. Please add your やること.") // TODO: Show help
+		return fmt.Errorf("No Koto data in the user")
+	}
+
 	// Get specified Koto ID
 	var specifiedKotoID string
 	for _, koto := range kotos {
@@ -261,18 +269,32 @@ func (app *Yarana) processGetActivities(replyToken string, userID string, keywor
 
 	// Make text to send
 	var textToSend string
+	jst := time.FixedZone("Asia/Tokyo", 9*60*60) // context should have timezone.
 	for acts := range activitiesChannel {
 		if len(acts) > 0 {
-			textToSend = textToSend + "KotoID: " + acts[0].KotoID + "\n"
+			var kotoTitle string
+			for _, koto := range kotos {
+				if koto.ID == acts[0].KotoID {
+					kotoTitle = koto.Title
+				}
+			}
+			textToSend = textToSend + kotoTitle + "\n"
 			for _, act := range acts {
-				textToSend = textToSend + act.TimeStamp.String() + "\n"
+				// convert to correct time zone
+				usersTimeStamp := act.TimeStamp.In(jst)
+				datetimeForUser := app.makeDatetimeToSendUser(usersTimeStamp)
+				textToSend = textToSend + datetimeForUser + "\n"
 			}
 		}
+	}
+	if textToSend == "" { // "textToSend is empty" means there are no activities in the user
+		app.replyWithHelp(replyToken, "You have no activities.") // TODO: show help
+		return fmt.Errorf("No activity data in the user")
 	}
 	// Reply to user
 	if _, err := app.bot.ReplyMessage(
 		replyToken,
-		linebot.NewTextMessage(textToSend),
+		linebot.NewTextMessage(strings.TrimSpace(textToSend)),
 	).Do(); err != nil {
 		return err
 	}
@@ -286,6 +308,11 @@ func (app *Yarana) processAddActivity(replyToken string, userID string, keyword 
 	if err != nil {
 		return err
 	}
+	if len(kotos) == 0 || kotos == nil {
+		app.replyWithHelp(replyToken, "No Koto Data. Please add your やること.") // TODO: Show help
+		return fmt.Errorf("No Koto data in the user")
+	}
+
 	// Get specified Koto ID
 	var specifiedKotoID string
 	for _, koto := range kotos {
@@ -295,7 +322,7 @@ func (app *Yarana) processAddActivity(replyToken string, userID string, keyword 
 	}
 	// Stop process if koto.Title doesn't exist in the user's data
 	if specifiedKotoID == "" {
-		app.replySorryAndShowHelp(replyToken, fmt.Sprintf("You don't have the やること: %s", keyword))
+		app.replyWithHelp(replyToken, fmt.Sprintf("You don't have the やること, %s", keyword)) // TODO: show user's all やること
 		return fmt.Errorf("Not found \"%s\" in the user", keyword)
 	}
 	// Make a new Activity object
@@ -308,25 +335,25 @@ func (app *Yarana) processAddActivity(replyToken string, userID string, keyword 
 	}()
 	err = <-errChan
 	if err != nil {
-		app.replySorry(replyToken, "I'm sorry I failed to add your new アクティビティ.")
+		app.replySorry(replyToken, fmt.Sprintf("I'm sorry I failed to add your %s activity.", keyword))
 		return err
 	}
 	// Make text to send
 	var textToSend string
-	textToSend = "I added your new アクティビティ"
+	textToSend = fmt.Sprintf("I added your %s activity.", keyword)
 	// Reply to user
 	if _, err := app.bot.ReplyMessage(
 		replyToken,
-		linebot.NewTextMessage(textToSend),
+		linebot.NewTextMessage(strings.TrimSpace(textToSend)),
 	).Do(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (app *Yarana) replySorryAndShowHelp(replyToken string, sorryMessage string) error {
+func (app *Yarana) replyWithHelp(replyToken string, message string) error {
 	var textToSend string
-	textToSend = sorryMessage
+	textToSend = message
 	if _, err := app.bot.ReplyMessage(
 		replyToken,
 		linebot.NewTextMessage(textToSend), // TODO: Show HELP View to user
@@ -346,4 +373,12 @@ func (app *Yarana) replySorry(replyToken string, sorryMessage string) error {
 		return err
 	}
 	return nil
+}
+
+func (app *Yarana) makeDatetimeToSendUser(timestamp time.Time) string {
+	datetimeStr := timestamp.String()
+	if len(datetimeStr) > 16 {
+		datetimeStr = datetimeStr[:16] // "2009-11-10 23:00" from 2009-11-10 23:00:00 +0000 UTC m=+0.000000001
+	}
+	return datetimeStr
 }
