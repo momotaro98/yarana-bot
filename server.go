@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -191,7 +192,7 @@ func (app *Yarana) processGetKotos(replyToken string, userID string, keyword str
 	}
 	if _, err := app.bot.ReplyMessage(
 		replyToken,
-		linebot.NewTextMessage(textToSend),
+		linebot.NewTextMessage(strings.TrimSpace(textToSend)),
 	).Do(); err != nil {
 		return err
 	}
@@ -218,7 +219,7 @@ func (app *Yarana) processAddKoto(replyToken string, userID string, keyword stri
 	textToSend = "I added your new やること"
 	if _, err := app.bot.ReplyMessage(
 		replyToken,
-		linebot.NewTextMessage(textToSend),
+		linebot.NewTextMessage(strings.TrimSpace(textToSend)),
 	).Do(); err != nil {
 		return err
 	}
@@ -274,7 +275,7 @@ func (app *Yarana) processGetActivities(replyToken string, userID string, keywor
 	// Reply to user
 	if _, err := app.bot.ReplyMessage(
 		replyToken,
-		linebot.NewTextMessage(textToSend),
+		linebot.NewTextMessage(strings.TrimSpace(textToSend)),
 	).Do(); err != nil {
 		return err
 	}
@@ -319,7 +320,7 @@ func (app *Yarana) processAddActivity(replyToken string, userID string, keyword 
 	// Reply to user
 	if _, err := app.bot.ReplyMessage(
 		replyToken,
-		linebot.NewTextMessage(textToSend),
+		linebot.NewTextMessage(strings.TrimSpace(textToSend)),
 	).Do(); err != nil {
 		return err
 	}
