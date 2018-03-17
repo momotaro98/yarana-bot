@@ -264,6 +264,7 @@ func (app *Yarana) processGetActivities(replyToken string, userID string, keywor
 
 	// Make text to send
 	var textToSend string
+	jst := time.FixedZone("Asia/Tokyo", 9*60*60) // context should have timezone.
 	for acts := range activitiesChannel {
 		if len(acts) > 0 {
 			var kotoTitle string
@@ -274,7 +275,10 @@ func (app *Yarana) processGetActivities(replyToken string, userID string, keywor
 			}
 			textToSend = textToSend + kotoTitle + "\n"
 			for _, act := range acts {
-				textToSend = textToSend + act.TimeStamp.String() + "\n"
+				// convert to correct time zone
+				usersTimeStamp := act.TimeStamp.In(jst)
+				datetimeForUser := app.makeDatetimeToSendUser(usersTimeStamp)
+				textToSend = textToSend + datetimeForUser + "\n"
 			}
 		}
 	}
@@ -355,4 +359,12 @@ func (app *Yarana) replySorry(replyToken string, sorryMessage string) error {
 		return err
 	}
 	return nil
+}
+
+func (app *Yarana) makeDatetimeToSendUser(timestamp time.Time) string {
+	datetimeStr := timestamp.String()
+	if len(datetimeStr) > 16 {
+		datetimeStr = datetimeStr[:16] // "2009-11-10 23:00" from 2009-11-10 23:00:00 +0000 UTC m=+0.000000001
+	}
+	return datetimeStr
 }
