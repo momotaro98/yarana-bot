@@ -287,6 +287,10 @@ func (app *Yarana) processGetActivities(replyToken string, userID string, keywor
 			}
 		}
 	}
+	if textToSend == "" { // "textToSend is empty" means there are no activities in the user
+		app.replyWithHelp(replyToken, "You have no activities.") // TODO: show help
+		return fmt.Errorf("No activity data in the user")
+	}
 	// Reply to user
 	if _, err := app.bot.ReplyMessage(
 		replyToken,
