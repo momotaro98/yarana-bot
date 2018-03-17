@@ -184,7 +184,7 @@ func (app *Yarana) processGetKotos(replyToken string, userID string, keyword str
 	// Make text to send
 	var textToSend string
 	if len(kotos) == 0 || kotos == nil {
-		textToSend = "No Koto Data. Please add your Koto."
+		textToSend = "No Koto Data. Please add your やること."
 	} else {
 		for _, koto := range kotos {
 			textToSend = textToSend + koto.Title + "\n"
@@ -213,10 +213,10 @@ func (app *Yarana) processAddKoto(replyToken string, userID string, keyword stri
 
 	err := <-errChan
 	if err != nil {
-		app.replySorry(replyToken, "I'm sorry I failed to add your new やること.")
+		app.replySorry(replyToken, fmt.Sprintf("I'm sorry I failed to add your new やること, %s.", keyword))
 		return err
 	}
-	textToSend = "I added your new やること"
+	textToSend = fmt.Sprintf("I added your new やること, %s", keyword)
 	if _, err := app.bot.ReplyMessage(
 		replyToken,
 		linebot.NewTextMessage(strings.TrimSpace(textToSend)),
@@ -308,7 +308,7 @@ func (app *Yarana) processAddActivity(replyToken string, userID string, keyword 
 	}
 	// Stop process if koto.Title doesn't exist in the user's data
 	if specifiedKotoID == "" {
-		app.replySorryAndShowHelp(replyToken, fmt.Sprintf("You don't have the やること: %s", keyword))
+		app.replySorryAndShowHelp(replyToken, fmt.Sprintf("You don't have the やること, %s", keyword))
 		return fmt.Errorf("Not found \"%s\" in the user", keyword)
 	}
 	// Make a new Activity object
@@ -321,12 +321,12 @@ func (app *Yarana) processAddActivity(replyToken string, userID string, keyword 
 	}()
 	err = <-errChan
 	if err != nil {
-		app.replySorry(replyToken, "I'm sorry I failed to add your new アクティビティ.")
+		app.replySorry(replyToken, fmt.Sprintf("I'm sorry I failed to add your %s activity.", keyword))
 		return err
 	}
 	// Make text to send
 	var textToSend string
-	textToSend = "I added your new アクティビティ"
+	textToSend = fmt.Sprintf("I added your %s activity.", keyword)
 	// Reply to user
 	if _, err := app.bot.ReplyMessage(
 		replyToken,
