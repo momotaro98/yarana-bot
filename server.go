@@ -266,7 +266,13 @@ func (app *Yarana) processGetActivities(replyToken string, userID string, keywor
 	var textToSend string
 	for acts := range activitiesChannel {
 		if len(acts) > 0 {
-			textToSend = textToSend + "KotoID: " + acts[0].KotoID + "\n"
+			var kotoTitle string
+			for _, koto := range kotos {
+				if koto.ID == acts[0].KotoID {
+					kotoTitle = koto.Title
+				}
+			}
+			textToSend = textToSend + kotoTitle + "\n"
 			for _, act := range acts {
 				textToSend = textToSend + act.TimeStamp.String() + "\n"
 			}
