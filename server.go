@@ -200,6 +200,19 @@ func (app *Yarana) processGetKotos(replyToken string, userID string, keyword str
 }
 
 func (app *Yarana) processAddKoto(replyToken string, userID string, keyword string) error {
+	// Get Kotos at first
+	kotos, err := app.dataCall.GetKotosByUserID(userID)
+	if err != nil {
+		return err
+	}
+	// Check if the koto is duplicate
+	for _, koto := range kotos {
+		if koto.Title == keyword {
+			app.replyWithHelp(replyToken, fmt.Sprintf("You've already had the やること, %s", keyword)) // TODO: show user's all やること
+			return fmt.Errorf("User was going to add duplicate Koto.")
+		}
+	}
+
 	kotoToAdd, _ := NewKotoData("", userID, keyword)
 	errChan := make(chan error, 1)
 
@@ -211,7 +224,7 @@ func (app *Yarana) processAddKoto(replyToken string, userID string, keyword stri
 
 	var textToSend string
 
-	err := <-errChan
+	err = <-errChan
 	if err != nil {
 		app.replySorry(replyToken, fmt.Sprintf("I'm sorry I failed to add your new やること, %s.", keyword))
 		return err
