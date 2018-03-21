@@ -136,7 +136,7 @@ func init() {
 // GenerateUniqID generates uniq id chars
 func (c *YaranaDataCall) GenerateUniqID() (id string) {
 	var letterRunes = []rune("0123456789abcdefghijklmnopqrstuvwxyz")
-	b := make([]rune, 32)
+	b := make([]rune, c.idLen)
 	for i := range b {
 		b[i] = letterRunes[rand.Intn(len(letterRunes))]
 	}
