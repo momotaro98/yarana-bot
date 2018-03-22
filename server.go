@@ -142,8 +142,8 @@ func (app *Yarana) handleText(message *linebot.TextMessage, replyToken string, s
 	userReq := NewUserTextRequest()
 	err = userReq.AnalyzeInputText(message.Text)
 	if err != nil {
-		app.replyWithHelp(replyToken, "I'm sorry that's invalid input for me.") // TODO: Do we have to manange replyToken? because we can use replyToken only once in a request.
-		return nil                                                              // regard invalid text for parsing as no error
+		app.replyWithHelp(replyToken, "I'm sorry that's invalid input for me.")
+		return nil // not regard invalid input as error
 	}
 	switch userReq.Type {
 	case RequstTypeGetKotos:
@@ -221,14 +221,14 @@ func (app *Yarana) processAddKoto(replyToken string, userID string, keyword stri
 		err := app.dataCall.AddKoto(kotoToAdd)
 		errChan <- err
 	}()
-
-	var textToSend string
-
 	err = <-errChan
 	if err != nil {
 		app.replySorry(replyToken, fmt.Sprintf("I'm sorry I failed to add your new やること, %s.", keyword))
 		return err
 	}
+
+	// Make text to send
+	var textToSend string
 	textToSend = fmt.Sprintf("I added your new やること, %s", keyword)
 	if _, err := app.bot.ReplyMessage(
 		replyToken,
@@ -280,9 +280,9 @@ func (app *Yarana) processGetActivities(replyToken string, userID string, keywor
 	wg.Wait()
 	close(activitiesChannel)
 
+	jst := time.FixedZone("Asia/Tokyo", 9*60*60) // TODO: Move this to proper place
 	// Make text to send
 	var textToSend string
-	jst := time.FixedZone("Asia/Tokyo", 9*60*60) // context should have timezone.
 	for acts := range activitiesChannel {
 		if len(acts) > 0 {
 			var kotoTitle string
@@ -300,7 +300,7 @@ func (app *Yarana) processGetActivities(replyToken string, userID string, keywor
 			}
 		}
 	}
-	if textToSend == "" { // "textToSend is empty" means there are no activities in the user
+	if textToSend == "" { // "textToSend is empty" means the user has not activities
 		app.replyWithHelp(replyToken, "You have no activities.") // TODO: show help
 		return fmt.Errorf("No activity data in the user")
 	}

@@ -38,20 +38,6 @@ func NewActivityData(id string, kotoID string, timeStamp time.Time) (*ActivityDa
 	}, nil
 }
 
-/*
-// DataCall to be
-type DataCall interface {
-	GetKotoByID(id string) (*KotoData, error)
-	GetKotosByUserID(userID string) ([]*KotoData, error)
-	AddKoto(koto *KotoData) error
-	EditKoto(id string, koto *KotoData) (*KotoData, error)
-	DeleteKoto(id string) error
-	GetActivityByID(id string) (*ActivityData, error)
-	GetActivitiesByKotoDataID(kotoID string) ([]*ActivityData, error)
-	AddActivity(activity *ActivityData) error
-}
-*/
-
 // DataCall is a alternative of DataCall // TODO: interface for prototype
 type DataCall interface {
 	GetKotosByUserID(userID string) ([]*KotoData, error)
@@ -150,7 +136,7 @@ func init() {
 // GenerateUniqID generates uniq id chars
 func (c *YaranaDataCall) GenerateUniqID() (id string) {
 	var letterRunes = []rune("0123456789abcdefghijklmnopqrstuvwxyz")
-	b := make([]rune, 32)
+	b := make([]rune, c.idLen)
 	for i := range b {
 		b[i] = letterRunes[rand.Intn(len(letterRunes))]
 	}
