@@ -91,7 +91,7 @@ func TestProcessAddKotosStandard(t *testing.T) {
 	)
 
 	// Standard case
-	err := app.processAddKoto("replyToken", "userID", "TestTitleAddKoto")
+	err := app.processAddKoto("replyToken", "userID", "NewTestTitle")
 	if err != nil {
 		if err.Error() != linebotAPIError401Str {
 			t.Fatal("err should be linebot APIError 401", " Got error: ", err)
@@ -159,5 +159,186 @@ func TestProcessAddActivityStandard(t *testing.T) {
 		}
 	} else {
 		t.Fatal("err should have error")
+	}
+}
+
+// NoKotoYaranaDataCallMock is a test struct of DataCall for Yarana-bot
+type NoKotoYaranaDataCallMock struct {
+}
+
+// NewNoKotoYaranaDataCallMock is a constructor of NoKotoYaranaDataCallMock
+func NewNoKotoYaranaDataCallMock() (*NoKotoYaranaDataCallMock, error) {
+	return &NoKotoYaranaDataCallMock{}, nil
+}
+
+// GetKotosByUserID is a method of DataCall interface
+func (c *NoKotoYaranaDataCallMock) GetKotosByUserID(userID string) ([]*KotoData, error) {
+	return []*KotoData{}, nil
+}
+
+// AddKoto is a method of DataCall interface
+func (c *NoKotoYaranaDataCallMock) AddKoto(koto *KotoData) error {
+	return nil
+}
+
+// GetActivitiesByKotoDataID is a method of DataCall interface
+func (c *NoKotoYaranaDataCallMock) GetActivitiesByKotoDataID(kotoID string) ([]*ActivityData, error) {
+	return nil, nil
+}
+
+// AddActivity is a method of DataCall interface
+func (c *NoKotoYaranaDataCallMock) AddActivity(activity *ActivityData) error {
+	return nil
+}
+
+func TestProcessGetKotosNoKoto(t *testing.T) {
+	dataCall, _ := NewNoKotoYaranaDataCallMock()
+	app, _ := NewYarana(
+		"TEST_YARANA_API_BASE_URL",
+		"TEST_YARANA_API_ADDKOTO_KEY",
+		"TEST_YARANA_API_ADDACTIVITY_KEY",
+		dataCall,
+	)
+
+	err := app.processGetKotos("replyToken", "userID", "TestTitle")
+	if err != nil {
+		if err.Error() != "No Koto data in the user" {
+			t.Fatal("err should be \"No koto data in the user\"", " Got error: ", err)
+		}
+	} else {
+		t.Fatal("err should have error")
+	}
+}
+
+func TestProcessAddKotoNoKoto(t *testing.T) {
+	dataCall, _ := NewNoKotoYaranaDataCallMock()
+	app, _ := NewYarana(
+		"TEST_YARANA_API_BASE_URL",
+		"TEST_YARANA_API_ADDKOTO_KEY",
+		"TEST_YARANA_API_ADDACTIVITY_KEY",
+		dataCall,
+	)
+
+	// Standard case
+	err := app.processAddKoto("replyToken", "userID", "NewTestTitle")
+	if err != nil {
+		if err.Error() != linebotAPIError401Str {
+			t.Fatal("err should be linebot APIError 401", " Got error: ", err)
+		}
+	} else {
+		t.Fatal("err should be linebot APIError 401")
+	}
+}
+
+func TestProcessGetActivitiesNoKoto(t *testing.T) {
+	dataCall, _ := NewNoKotoYaranaDataCallMock()
+	app, _ := NewYarana(
+		"TEST_YARANA_API_BASE_URL",
+		"TEST_YARANA_API_ADDKOTO_KEY",
+		"TEST_YARANA_API_ADDACTIVITY_KEY",
+		dataCall,
+	)
+
+	err := app.processGetActivities("replyToken", "userID", "TestTitle")
+	if err != nil {
+		if err.Error() != "No Koto data in the user" {
+			t.Fatal("err should be \"No koto data in the user\"", " Got error: ", err)
+		}
+	} else {
+		t.Fatal("err should have error")
+	}
+}
+
+func TestProcessAddActivityNoKoto(t *testing.T) {
+	dataCall, _ := NewNoKotoYaranaDataCallMock()
+	app, _ := NewYarana(
+		"TEST_YARANA_API_BASE_URL",
+		"TEST_YARANA_API_ADDKOTO_KEY",
+		"TEST_YARANA_API_ADDACTIVITY_KEY",
+		dataCall,
+	)
+
+	err := app.processAddActivity("replyToken", "userID", "TestTitle")
+	if err != nil {
+		if err.Error() != "No Koto data in the user" {
+			t.Fatal("err should be \"No koto data in the user\"", " Got error: ", err)
+		}
+	} else {
+		t.Fatal("err should have error")
+	}
+}
+
+// NoActivityYaranaDataCallMock is a test struct of DataCall for Yarana-bot
+type NoActivityYaranaDataCallMock struct {
+}
+
+// NewNoActivityYaranaDataCallMock is a constructor of NoActivityYaranaDataCallMock
+func NewNoActivityYaranaDataCallMock() (*NoActivityYaranaDataCallMock, error) {
+	return &NoActivityYaranaDataCallMock{}, nil
+}
+
+// GetKotosByUserID is a method of DataCall interface
+func (c *NoActivityYaranaDataCallMock) GetKotosByUserID(userID string) ([]*KotoData, error) {
+	// Get Koto by userID from something
+	id := "0123456789a"
+	title := "TestTitle"
+	koto, err := NewKotoData(id, userID, title)
+	if err != nil {
+		return nil, err
+	}
+	return []*KotoData{koto}, nil
+}
+
+// AddKoto is a method of DataCall interface
+func (c *NoActivityYaranaDataCallMock) AddKoto(koto *KotoData) error {
+	return nil
+}
+
+// GetActivitiesByKotoDataID is a method of DataCall interface
+func (c *NoActivityYaranaDataCallMock) GetActivitiesByKotoDataID(kotoID string) ([]*ActivityData, error) {
+	return []*ActivityData{}, nil
+}
+
+// AddActivity is a method of DataCall interface
+func (c *NoActivityYaranaDataCallMock) AddActivity(activity *ActivityData) error {
+	return nil
+}
+
+func TestProcessGetActivitiesNoActivity(t *testing.T) {
+	dataCall, _ := NewNoActivityYaranaDataCallMock()
+	app, _ := NewYarana(
+		"TEST_YARANA_API_BASE_URL",
+		"TEST_YARANA_API_ADDKOTO_KEY",
+		"TEST_YARANA_API_ADDACTIVITY_KEY",
+		dataCall,
+	)
+
+	err := app.processGetActivities("replyToken", "userID", "TestTitle")
+	if err != nil {
+		if err.Error() != "No activity data in the user" {
+			t.Fatal("err should be \"No activity data in the user\"", " Got error: ", err)
+		}
+	} else {
+		t.Fatal("err should have error")
+	}
+}
+
+func TestProcessAddActivityNoActivity(t *testing.T) {
+	dataCall, _ := NewNoActivityYaranaDataCallMock()
+	app, _ := NewYarana(
+		"TEST_YARANA_API_BASE_URL",
+		"TEST_YARANA_API_ADDKOTO_KEY",
+		"TEST_YARANA_API_ADDACTIVITY_KEY",
+		dataCall,
+	)
+
+	// Standard case
+	err := app.processAddActivity("replyToken", "userID", "TestTitle")
+	if err != nil {
+		if err.Error() != linebotAPIError401Str {
+			t.Fatal("err should be linebot APIError 401", " Got error: ", err)
+		}
+	} else {
+		t.Fatal("err should be linebot APIError 401")
 	}
 }
