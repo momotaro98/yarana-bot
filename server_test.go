@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 	"time"
 )
@@ -69,6 +70,7 @@ func TestProcessGetKotosStandard(t *testing.T) {
 		dataCall,
 	)
 
+	// Standard case
 	err := app.processGetKotos("replyToken", "userID", "TestTitle")
 	if err != nil {
 		if err.Error() != linebotAPIError401Str {
@@ -88,6 +90,7 @@ func TestProcessAddKotosStandard(t *testing.T) {
 		dataCall,
 	)
 
+	// Standard case
 	err := app.processAddKoto("replyToken", "userID", "TestTitleAddKoto")
 	if err != nil {
 		if err.Error() != linebotAPIError401Str {
@@ -95,6 +98,16 @@ func TestProcessAddKotosStandard(t *testing.T) {
 		}
 	} else {
 		t.Fatal("err should be linebot APIError 401")
+	}
+
+	// duplicate Koto title case
+	err = app.processAddKoto("replyToken", "userID", "TestTitle")
+	if err != nil {
+		if err.Error() != "User was going to add duplicate Koto." {
+			t.Fatal("err should be yarana-bot duplicate Koto error.", " Got error: ", err)
+		}
+	} else {
+		t.Fatal("err should have error")
 	}
 }
 
@@ -107,6 +120,7 @@ func TestProcessGetActivitiesStandard(t *testing.T) {
 		dataCall,
 	)
 
+	// Standard case
 	err := app.processGetActivities("replyToken", "userID", "")
 	if err != nil {
 		if err.Error() != linebotAPIError401Str {
@@ -126,6 +140,7 @@ func TestProcessAddActivityStandard(t *testing.T) {
 		dataCall,
 	)
 
+	// Standard case
 	err := app.processAddActivity("replyToken", "userID", "TestTitle")
 	if err != nil {
 		if err.Error() != linebotAPIError401Str {
@@ -133,5 +148,16 @@ func TestProcessAddActivityStandard(t *testing.T) {
 		}
 	} else {
 		t.Fatal("err should be linebot APIError 401")
+	}
+
+	// non exist title case
+	NonExistTestTitle := "NonExistTestTitle"
+	err = app.processAddActivity("replyToken", "userID", NonExistTestTitle)
+	if err != nil {
+		if err.Error() != fmt.Sprintf("Not found \"%s\" in the user", NonExistTestTitle) {
+			t.Fatal("err should be yarana-bot non-exist Koto error.", " Got error: ", err)
+		}
+	} else {
+		t.Fatal("err should have error")
 	}
 }
