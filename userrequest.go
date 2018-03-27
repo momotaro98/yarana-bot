@@ -35,6 +35,20 @@ func (r *UserTextRequest) AnalyzeInputText(text string) error {
 		return fmt.Errorf("Can't analyze: %s", text)
 	}
 
+	err := r.AnalyzeInputTextInEnglish(text)
+	if err == nil && r.Type != "" {
+		return nil
+	}
+
+	return fmt.Errorf("Can't analyze: %s", text)
+}
+
+// AnalyzeInputTextInEnglish analyzes input text from user with English
+func (r *UserTextRequest) AnalyzeInputTextInEnglish(text string) error {
+	words := strings.Fields(text)
+	if len(words) < 1 {
+		return fmt.Errorf("Can't analyze: %s", text)
+	}
 	switch fWord := words[0]; fWord {
 	case "GetKotos":
 		r.Type = RequstTypeGetKotos
@@ -58,6 +72,5 @@ func (r *UserTextRequest) AnalyzeInputText(text string) error {
 	default:
 		return fmt.Errorf("Can't analyze: %s", text)
 	}
-
 	return nil
 }
