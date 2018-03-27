@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestAnalyzeInputTextCaseStandard(t *testing.T) {
 	// RequstTypeGetKotos case
@@ -62,5 +65,64 @@ func TestAnalyzeInputTextCaseStandard(t *testing.T) {
 	}
 	if userReq.VariableKeyword != "training" {
 		t.Fatal("The keyword is not correct, input text: ", text)
+	}
+}
+
+func TestAnalyzeInputTextCaseInvalid(t *testing.T) {
+	// Invalid text
+	userReq := NewUserTextRequest()
+	text := "abcdefghijklmnopqrstuvwxyz"
+	if err := userReq.AnalyzeInputText(text); err == nil {
+		t.Fatal("There shoud be error.", "input text:", text)
+	} else if err.Error() != fmt.Sprintf("Can't analyze: %s", text) {
+		t.Fatal("Error message is not correct.", "Got error:", err)
+	}
+	if userReq.Type != "" {
+		t.Fatal("The request type should be empty, input text:", text, "user.Type:", userReq.Type)
+	}
+	if userReq.VariableKeyword != "" {
+		t.Fatal("The keyword should be empty, input text:", text, "user.VariableKeyword:", userReq.VariableKeyword)
+	}
+	// No text string case
+	userReq = NewUserTextRequest()
+	text = ""
+	if err := userReq.AnalyzeInputText(text); err == nil {
+		t.Fatal("There shoud be error.", "input text:", text)
+	} else if err.Error() != fmt.Sprintf("Can't analyze: %s", text) {
+		t.Fatal("Error message is not correct.", "Got error:", err)
+	}
+	if userReq.Type != "" {
+		t.Fatal("The request type should be empty, input text:", text, "user.Type:", userReq.Type)
+	}
+	if userReq.VariableKeyword != "" {
+		t.Fatal("The keyword should be empty, input text:", text, "user.VariableKeyword:", userReq.VariableKeyword)
+	}
+	// No 2nd word after AddKoto
+	userReq = NewUserTextRequest()
+	text = "AddKoto "
+	if err := userReq.AnalyzeInputText(text); err == nil {
+		t.Fatal("There shoud be error.", "input text:", text)
+	} else if err.Error() != fmt.Sprintf("Can't analyze: %s", text) {
+		t.Fatal("Error message is not correct.", "Got error:", err)
+	}
+	if userReq.Type != "" {
+		t.Fatal("The request type should be empty, input text:", text, "user.Type:", userReq.Type)
+	}
+	if userReq.VariableKeyword != "" {
+		t.Fatal("The keyword should be empty, input text:", text, "user.VariableKeyword:", userReq.VariableKeyword)
+	}
+	// No 2nd word after AddActivity
+	userReq = NewUserTextRequest()
+	text = "AddActivity "
+	if err := userReq.AnalyzeInputText(text); err == nil {
+		t.Fatal("There shoud be error.", "input text:", text)
+	} else if err.Error() != fmt.Sprintf("Can't analyze: %s", text) {
+		t.Fatal("Error message is not correct.", "Got error:", err)
+	}
+	if userReq.Type != "" {
+		t.Fatal("The request type should be empty, input text:", text, "user.Type:", userReq.Type)
+	}
+	if userReq.VariableKeyword != "" {
+		t.Fatal("The keyword should be empty, input text:", text, "user.VariableKeyword:", userReq.VariableKeyword)
 	}
 }
