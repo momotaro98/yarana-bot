@@ -6,7 +6,7 @@ import (
 )
 
 func TestAnalyzeInputTextCaseStandard(t *testing.T) {
-	// English case
+	// Command case
 	// RequstTypeGetKotos case
 	userReq := NewUserTextRequest()
 	text := "GetKotos"
@@ -192,7 +192,7 @@ func TestAnalyzeInputTextCaseStandard(t *testing.T) {
 }
 
 func TestAnalyzeInputTextCaseInvalid(t *testing.T) {
-	// English case
+	// Command case
 	// Invalid text
 	userReq := NewUserTextRequest()
 	text := "abcdefghijklmnopqrstuvwxyz"

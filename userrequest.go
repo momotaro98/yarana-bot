@@ -35,7 +35,7 @@ func (r *UserTextRequest) AnalyzeInputText(text string) error {
 		return fmt.Errorf("Can't analyze: %s", text)
 	}
 
-	if err := r.AnalyzeInputTextInEnglish(text); r.Type != "" && err == nil {
+	if err := r.AnalyzeInputTextInCommand(text); r.Type != "" && err == nil {
 		return nil
 	}
 	if err := r.AnalyzeInputTextInJapanese(text); r.Type != "" && err == nil {
@@ -45,8 +45,8 @@ func (r *UserTextRequest) AnalyzeInputText(text string) error {
 	return fmt.Errorf("Can't analyze: %s", text)
 }
 
-// AnalyzeInputTextInEnglish analyzes input text from user with English
-func (r *UserTextRequest) AnalyzeInputTextInEnglish(text string) error {
+// AnalyzeInputTextInCommand analyzes input text from user with Command
+func (r *UserTextRequest) AnalyzeInputTextInCommand(text string) error {
 	words := strings.Fields(text)
 	if len(words) < 1 {
 		return fmt.Errorf("Can't analyze: %s", text)
