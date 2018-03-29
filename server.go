@@ -32,7 +32,6 @@ func main() {
 	}
 
 	http.HandleFunc("/callback", app.Callback)
-	// TODO: Support HTTPS by using `ListenAdnServeTLS`, reverse proxy or etc.
 	if err := http.ListenAndServe(":"+os.Getenv("PORT"), nil); err != nil {
 		log.Fatal(err)
 	}
@@ -366,7 +365,7 @@ func (app *Yarana) processAddActivity(replyToken string, userID string, keyword 
 
 func (app *Yarana) replyWithHelp(replyToken string, message string) error {
 	var textToSend string
-	textToSend = message
+	textToSend = message + "\n\n" + ReturnHelpText()
 	if _, err := app.bot.ReplyMessage(
 		replyToken,
 		linebot.NewTextMessage(textToSend), // TODO: Show HELP View to user
