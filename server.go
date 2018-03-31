@@ -146,6 +146,11 @@ func (app *Yarana) handleText(message *linebot.TextMessage, replyToken string, s
 		return nil // not regard invalid input as error
 	}
 	switch userReq.Type {
+	case RequestTypeHelp:
+		err = app.processHelp(replyToken, source.UserID, userReq.VariableKeyword)
+		if err != nil {
+			return err
+		}
 	case RequstTypeGetKotos:
 		err = app.processGetKotos(replyToken, source.UserID, userReq.VariableKeyword)
 		if err != nil {
@@ -171,6 +176,19 @@ func (app *Yarana) handleText(message *linebot.TextMessage, replyToken string, s
 }
 
 func (app *Yarana) handleImage(message *linebot.ImageMessage, replyToken string) error {
+	return nil
+}
+
+func (app *Yarana) processHelp(replyToken string, userID string, keyword string) error {
+	// Make text to send
+	var textToSend string
+	textToSend = ReturnHelpText()
+	if _, err := app.bot.ReplyMessage(
+		replyToken,
+		linebot.NewTextMessage(strings.TrimSpace(textToSend)),
+	).Do(); err != nil {
+		return err
+	}
 	return nil
 }
 

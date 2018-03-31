@@ -10,6 +10,7 @@ type RequstType string
 
 // RequstType constants
 const (
+	RequestTypeHelp         RequstType = "Help"
 	RequstTypeGetKotos      RequstType = "GetKotos"
 	RequstTypeAddKoto       RequstType = "AddKoto"
 	RequstTypeGetActivities RequstType = "GetActivities"
@@ -52,7 +53,15 @@ func (r *UserTextRequest) AnalyzeInputTextInCommand(text string) error {
 		return fmt.Errorf("Can't analyze: %s", text)
 	}
 	switch fWord := words[0]; fWord {
+	case "Help":
+		if len(words) != 1 {
+			return fmt.Errorf("Can't analyze: %s", text)
+		}
+		r.Type = RequestTypeHelp
 	case "GetKotos":
+		if len(words) != 1 {
+			return fmt.Errorf("Can't analyze: %s", text)
+		}
 		r.Type = RequstTypeGetKotos
 	case "AddKoto":
 		if len(words) < 2 {
@@ -86,6 +95,14 @@ func (r *UserTextRequest) AnalyzeInputTextInJapanese(text string) error {
 	// Japanese mode doesn't accept multi "words"
 	if len(words) > 1 {
 		return fmt.Errorf("Can't analyze: %s", text)
+	}
+
+	if text == "使い方" || text == "使い方教えて" || text == "使い方を教えて" ||
+		text == "使いかた" || text == "使いかた教えて" || text == "使いかたを教えて" ||
+		text == "つかい方" || text == "つかい方教えて" || text == "つかい方を教えて" ||
+		text == "つかいかた" || text == "つかいかた教えて" || text == "つかいかたを教えて" {
+		r.Type = RequestTypeHelp
+		return nil
 	}
 
 	if text == "やること教えて" || text == "やることを教えて" {
