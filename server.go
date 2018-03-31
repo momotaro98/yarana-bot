@@ -141,7 +141,7 @@ func (app *Yarana) handleText(message *linebot.TextMessage, replyToken string, s
 	userReq := NewUserTextRequest()
 	err = userReq.AnalyzeInputText(message.Text)
 	if err != nil {
-		app.replyWithHelp(replyToken, "I'm sorry that's invalid input for me.")
+		app.replyWithHelp(replyToken, "それじゃわからないわよ")
 		return nil // not regard invalid input as error
 	}
 	switch userReq.Type {
@@ -177,10 +177,11 @@ func (app *Yarana) processGetKotos(replyToken string, userID string, keyword str
 	// Get Kotos
 	kotos, err := app.dataCall.GetKotosByUserID(userID)
 	if err != nil {
+		app.replySorry(replyToken, fmt.Sprintf("ごめんなさいね、やることを取得するの失敗しちゃったみたいなのよ。もう一度入力してみて。"))
 		return err
 	}
 	if len(kotos) == 0 || kotos == nil {
-		app.replyWithHelp(replyToken, "No Koto Data. Please add your やること.") // TODO: Show help
+		app.replyWithHelp(replyToken, "やることが登録されてないわよ")
 		return fmt.Errorf("No Koto data in the user")
 	}
 
@@ -207,7 +208,7 @@ func (app *Yarana) processAddKoto(replyToken string, userID string, keyword stri
 	// Check if the koto is duplicate
 	for _, koto := range kotos {
 		if koto.Title == keyword {
-			app.replyWithHelp(replyToken, fmt.Sprintf("You've already had the やること, %s", keyword)) // TODO: show user's all やること
+			app.replyWithHelp(replyToken, fmt.Sprintf("%sはもう登録されてるわよ", keyword)) // TODO: show user's all やること
 			return fmt.Errorf("User was going to add duplicate Koto.")
 		}
 	}
@@ -222,13 +223,13 @@ func (app *Yarana) processAddKoto(replyToken string, userID string, keyword stri
 	}()
 	err = <-errChan
 	if err != nil {
-		app.replySorry(replyToken, fmt.Sprintf("I'm sorry I failed to add your new やること, %s.", keyword))
+		app.replySorry(replyToken, fmt.Sprintf("ごめんなさいね、%sを登録するのに失敗しちゃったみたいなのよ。もう一度入力してみて。", keyword))
 		return err
 	}
 
 	// Make text to send
 	var textToSend string
-	textToSend = fmt.Sprintf("I added your new やること, %s", keyword)
+	textToSend = fmt.Sprintf("%sを新しく登録したわよ。ちゃんと続けなさいよね。", keyword)
 	if _, err := app.bot.ReplyMessage(
 		replyToken,
 		linebot.NewTextMessage(strings.TrimSpace(textToSend)),
@@ -246,7 +247,7 @@ func (app *Yarana) processGetActivities(replyToken string, userID string, keywor
 		return err
 	}
 	if len(kotos) == 0 || kotos == nil {
-		app.replyWithHelp(replyToken, "No Koto Data. Please add your やること.") // TODO: Show help
+		app.replyWithHelp(replyToken, "やることが登録されてないわよ")
 		return fmt.Errorf("No Koto data in the user")
 	}
 
@@ -300,7 +301,7 @@ func (app *Yarana) processGetActivities(replyToken string, userID string, keywor
 		}
 	}
 	if textToSend == "" { // "textToSend is empty" means the user has not activities
-		app.replyWithHelp(replyToken, "You have no activities.") // TODO: show help
+		app.replyWithHelp(replyToken, "まだ1回もやってないじゃないの。やりなさいよ。")
 		return fmt.Errorf("No activity data in the user")
 	}
 	// Reply to user
@@ -321,7 +322,7 @@ func (app *Yarana) processAddActivity(replyToken string, userID string, keyword 
 		return err
 	}
 	if len(kotos) == 0 || kotos == nil {
-		app.replyWithHelp(replyToken, "No Koto Data. Please add your やること.") // TODO: Show help
+		app.replyWithHelp(replyToken, "やることが登録されてないわよ")
 		return fmt.Errorf("No Koto data in the user")
 	}
 
@@ -334,7 +335,7 @@ func (app *Yarana) processAddActivity(replyToken string, userID string, keyword 
 	}
 	// Stop process if koto.Title doesn't exist in the user's data
 	if specifiedKotoID == "" {
-		app.replyWithHelp(replyToken, fmt.Sprintf("You don't have the やること, %s", keyword)) // TODO: show user's all やること
+		app.replyWithHelp(replyToken, fmt.Sprintf("%sは登録されてないわよ", keyword)) // TODO: show user's all やること
 		return fmt.Errorf("Not found \"%s\" in the user", keyword)
 	}
 	// Make a new Activity object
@@ -347,12 +348,12 @@ func (app *Yarana) processAddActivity(replyToken string, userID string, keyword 
 	}()
 	err = <-errChan
 	if err != nil {
-		app.replySorry(replyToken, fmt.Sprintf("I'm sorry I failed to add your %s activity.", keyword))
+		app.replySorry(replyToken, fmt.Sprintf("ごめんなさいね、%sの登録に失敗しちゃったみたいなのよ。もう一度入力してみて。", keyword))
 		return err
 	}
 	// Make text to send
 	var textToSend string
-	textToSend = fmt.Sprintf("I added your %s activity.", keyword)
+	textToSend = fmt.Sprintf("%sをやったのね、えらいじゃないの！", keyword)
 	// Reply to user
 	if _, err := app.bot.ReplyMessage(
 		replyToken,
