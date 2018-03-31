@@ -105,7 +105,7 @@ func (r *UserTextRequest) AnalyzeInputTextInJapanese(text string) error {
 		return nil
 	}
 
-	if text == "やること教えて" || text == "やることを教えて" {
+	if text == "やること" || text == "やること教えて" || text == "やることを教えて" {
 		r.Type = RequstTypeGetKotos
 		return nil
 	}
@@ -121,11 +121,22 @@ func (r *UserTextRequest) AnalyzeInputTextInJapanese(text string) error {
 		}
 	}
 
-	if text == "履歴教えて" || text == "履歴を教えて" {
+	if text == "履歴" || text == "履歴教えて" || text == "履歴を教えて" {
 		r.Type = RequstTypeGetActivities
 		return nil
-	} else if n := len(text) - 3*7; n >= 0 {
+	}
+	if n := len(text) - 3*7; n >= 0 {
 		if text[n:] == "の履歴を教えて" {
+			if len(text[:n]) <= 0 {
+				return fmt.Errorf("Can't analyze: %s", text)
+			}
+			r.Type = RequstTypeGetActivities
+			r.VariableKeyword = text[:n]
+			return nil
+		}
+	}
+	if n := len(text) - 3*3; n >= 0 {
+		if text[n:] == "の履歴" {
 			if len(text[:n]) <= 0 {
 				return fmt.Errorf("Can't analyze: %s", text)
 			}
