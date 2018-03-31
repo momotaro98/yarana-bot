@@ -97,18 +97,21 @@ func (app *Yarana) Callback(w http.ResponseWriter, r *http.Request) {
 				log.Printf("Unknown message: %v", message)
 			}
 		case linebot.EventTypeFollow:
-			if err := app.replyText(event.ReplyToken, "Got followed event"); err != nil {
+			log.Printf("Follow event: %v", event)
+			if err := app.replyWithHelp(event.ReplyToken, "やらなボットよ、よろしくじゃないの！"); err != nil {
 				log.Print(err)
 			}
 		case linebot.EventTypeUnfollow:
 			log.Printf("Unfollowed this bot: %v", event)
 		case linebot.EventTypeJoin:
-			if err := app.replyText(event.ReplyToken, "Joined "+string(event.Source.Type)); err != nil {
+			log.Printf("Join event: %v", event)
+			if err := app.replyWithHelp(event.ReplyToken, "やらなボットよ、よろしくじゃないの！"); err != nil {
 				log.Print(err)
 			}
 		case linebot.EventTypeLeave:
 			log.Printf("Left: %v", event)
 		case linebot.EventTypePostback:
+			log.Printf("Postback event: %v", event)
 			data := event.Postback.Data
 			if data == "DATE" || data == "TIME" || data == "DATETIME" {
 				data += fmt.Sprintf("(%v)", *event.Postback.Params)
@@ -117,9 +120,7 @@ func (app *Yarana) Callback(w http.ResponseWriter, r *http.Request) {
 				log.Print(err)
 			}
 		case linebot.EventTypeBeacon:
-			if err := app.replyText(event.ReplyToken, "Got beacon: "+event.Beacon.Hwid); err != nil {
-				log.Print(err)
-			}
+			log.Printf("Beacon event: %v", event)
 		default:
 			log.Printf("Unknown event: %v", event)
 		}
@@ -208,7 +209,7 @@ func (app *Yarana) processAddKoto(replyToken string, userID string, keyword stri
 	// Check if the koto is duplicate
 	for _, koto := range kotos {
 		if koto.Title == keyword {
-			app.replyWithHelp(replyToken, fmt.Sprintf("%sはもう登録されてるわよ", keyword)) // TODO: show user's all やること
+			app.replyWithHelp(replyToken, fmt.Sprintf("%sはもう登録されてるわよ", keyword)) // TODO: Replace showHelp to showAllUsersやつこと
 			return fmt.Errorf("User was going to add duplicate Koto.")
 		}
 	}
@@ -335,7 +336,7 @@ func (app *Yarana) processAddActivity(replyToken string, userID string, keyword 
 	}
 	// Stop process if koto.Title doesn't exist in the user's data
 	if specifiedKotoID == "" {
-		app.replyWithHelp(replyToken, fmt.Sprintf("%sは登録されてないわよ", keyword)) // TODO: show user's all やること
+		app.replyWithHelp(replyToken, fmt.Sprintf("%sは登録されてないわよ", keyword)) // TODO: Replace showHelp to showAllUsersやつこと
 		return fmt.Errorf("Not found \"%s\" in the user", keyword)
 	}
 	// Make a new Activity object
@@ -369,7 +370,7 @@ func (app *Yarana) replyWithHelp(replyToken string, message string) error {
 	textToSend = message + "\n\n" + ReturnHelpText()
 	if _, err := app.bot.ReplyMessage(
 		replyToken,
-		linebot.NewTextMessage(textToSend), // TODO: Show HELP View to user
+		linebot.NewTextMessage(textToSend),
 	).Do(); err != nil {
 		return err
 	}
