@@ -2,6 +2,8 @@
 
 Line Bot Application
 
+![yarana-bot_demo](https://raw.githubusercontent.com/momotaro98/my-project-images/master/yarana-bot/yarana-bot-v1.1.gif)
+
 ## Feature
 
 * やると褒めます
