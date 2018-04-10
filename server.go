@@ -32,6 +32,7 @@ func main() {
 	}
 
 	http.HandleFunc("/callback", app.Callback)
+	http.HandleFunc("/batch", app.Batch)
 	if err := http.ListenAndServe(":"+os.Getenv("PORT"), nil); err != nil {
 		log.Fatal(err)
 	}
@@ -413,4 +414,20 @@ func (app *Yarana) makeDatetimeToSendUser(timestamp time.Time) string {
 		datetimeStr = datetimeStr[:16] // "2009-11-10 23:00" from 2009-11-10 23:00:00 +0000 UTC m=+0.000000001
 	}
 	return datetimeStr
+}
+
+// Batch is hunde function for running a batch program
+func (app *Yarana) Batch(w http.ResponseWriter, r *http.Request) {
+	codes, ok := r.URL.Query()["code"]
+	if !ok || len(codes) != 1 {
+		log.Println("Url Param 'key' is missing")
+		return
+	}
+	code := codes[0]
+	log.Printf("Got event %s", string(code)) // TODO: remove it
+
+}
+
+// RunBatch runs a batch program of yarana-bot
+func RunBatch() {
 }
