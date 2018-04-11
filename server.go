@@ -420,14 +420,89 @@ func (app *Yarana) makeDatetimeToSendUser(timestamp time.Time) string {
 func (app *Yarana) Batch(w http.ResponseWriter, r *http.Request) {
 	codes, ok := r.URL.Query()["code"]
 	if !ok || len(codes) != 1 {
-		log.Println("Url Param 'key' is missing")
+		log.Println("Url Param 'code' is missing")
 		return
 	}
 	code := codes[0]
 	log.Printf("Got event %s", string(code)) // TODO: remove it
-
+	app.RunBatch()
 }
 
 // RunBatch runs a batch program of yarana-bot
-func RunBatch() {
+func (app *Yarana) RunBatch() error {
+	// Get Users
+	// TODO: Implement Get users
+	// here are mock
+	users := []string{os.Getenv("YARANA_MOMOTARO_ID")} // TODO: replace it
+
+	for _, userID := range users {
+		go func(userID string) error {
+			// Get Kotos of the user
+			kotos, err := app.dataCall.GetKotosByUserID(userID)
+			if err != nil {
+				return err
+			}
+			if len(kotos) == 0 || kotos == nil {
+				return nil // nothing to do if the user has no kotos
+			}
+
+			// TODO: Filter Kotos which has no-push flag
+
+			// Filter Kotos which have no activities in the previous day
+			// get Activities in parallel
+			activitiesChannel := make(chan []*ActivityData, len(kotos))
+			wg := &sync.WaitGroup{}
+			for _, koto := range kotos {
+				wg.Add(1)
+				go func(kotoId string) {
+					acts, _ := app.dataCall.GetActivitiesByKotoDataID(kotoId)
+					activitiesChannel <- acts
+					wg.Done()
+				}(koto.ID)
+			}
+			wg.Wait()
+			close(activitiesChannel)
+
+			jst := time.FixedZone("Asia/Tokyo", 9*60*60) // TODO: Move this to proper place
+			// filter kotos
+			var pushTargetKotoTitles []string
+			for actsInOneKoto := range activitiesChannel {
+				var kotoTitle string
+				if len(actsInOneKoto) > 0 {
+					for _, koto := range kotos {
+						if koto.ID == actsInOneKoto[0].KotoID {
+							kotoTitle = koto.Title
+						}
+					}
+				}
+				if kotoTitle == "" {
+					continue
+				}
+				// filter by previous day activity
+				for _, act := range actsInOneKoto {
+					usersTimeStamp := act.TimeStamp.In(jst)
+					if usersTimeStamp.After(time.Now().In(jst).AddDate(0, 0, -1)) {
+						pushTargetKotoTitles = append(pushTargetKotoTitles, kotoTitle)
+					}
+				}
+			}
+
+			// Make text to send and Push message to the user with package of the kotos
+			// make text
+			var textToSend string
+			textToSend = strings.Join(pushTargetKotoTitles, "と") + "は昨日やったのかしら？！"
+			textToSend = textToSend + "\n"
+			for _, kotoTitle := range pushTargetKotoTitles {
+				textToSend = textToSend + "昨日" + kotoTitle + "をやったよ"
+				textToSend = textToSend + "\n"
+			}
+			textToSend = textToSend + "ってやったのは入力しなさいよ"
+			// push message to the user with package of the kotos
+			app.bot.PushMessage(userID, linebot.NewTextMessage(strings.TrimSpace(textToSend))).Do()
+
+			return nil
+		}(userID)
+	}
+
+	return nil
 }
