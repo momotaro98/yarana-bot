@@ -448,7 +448,7 @@ func (app *Yarana) RunBatch() error {
 
 			// TODO: Filter Kotos which has no-push flag
 
-			// Filter Kotos which have no activities in the previous day
+			// Filter Kotos which have no activities in a day
 			// get Activities in parallel
 			activitiesChannel := make(chan []*ActivityData, len(kotos))
 			wg := &sync.WaitGroup{}
@@ -478,27 +478,29 @@ func (app *Yarana) RunBatch() error {
 				if kotoTitle == "" {
 					continue
 				}
-				// filter by previous day activity
-				for _, act := range actsInOneKoto {
+				// filter by in a day activity
+				var didUserDoTheKotoInADay bool
+				for _, act := range actsInOneKoto { // TODO: make unit test of this logic
 					usersTimeStamp := act.TimeStamp.In(jst)
-					if usersTimeStamp.After(time.Now().In(jst).AddDate(0, 0, -1)) {
-						pushTargetKotoTitles = append(pushTargetKotoTitles, kotoTitle)
+					if usersTimeStamp.After(time.Now().In(jst).Add(time.Hour * -18)) { // TODO: decide the time duration
+						didUserDoTheKotoInADay = true
 					}
+				}
+				if !didUserDoTheKotoInADay {
+					pushTargetKotoTitles = append(pushTargetKotoTitles, kotoTitle)
 				}
 			}
 
 			// Make text to send and Push message to the user with package of the kotos
-			// make text
 			var textToSend string
-			textToSend = strings.Join(pushTargetKotoTitles, "と") + "は昨日やったのかしら？！"
+			textToSend = strings.Join(pushTargetKotoTitles, "と") + "は今日やったのかしら!?" // TODO: 昨日か今日か
 			textToSend = textToSend + "\n"
-			for _, kotoTitle := range pushTargetKotoTitles {
-				textToSend = textToSend + "昨日" + kotoTitle + "をやったよ"
-				textToSend = textToSend + "\n"
-			}
-			textToSend = textToSend + "ってやったのは入力しなさいよ"
-			// push message to the user with package of the kotos
+			textToSend = textToSend + "やったら↓をコピペ入力してよね"
 			app.bot.PushMessage(userID, linebot.NewTextMessage(strings.TrimSpace(textToSend))).Do()
+			for _, kotoTitle := range pushTargetKotoTitles {
+				textToSend = kotoTitle + "をやったよ"
+				app.bot.PushMessage(userID, linebot.NewTextMessage(strings.TrimSpace(textToSend))).Do()
+			}
 
 			return nil
 		}(userID)
