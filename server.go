@@ -493,14 +493,14 @@ func (app *Yarana) RunBatch() error {
 
 			// Make text to send and Push message to the user with package of the kotos
 			var textToSend string
-			textToSend = strings.Join(pushTargetKotoTitles, "と") + "は今日やったのかしら!?" // TODO: 昨日か今日か
+			textToSend = strings.Join(pushTargetKotoTitles, "と") + "は今日やったのかしら！？"
 			textToSend = textToSend + "\n"
-			textToSend = textToSend + "やったら↓をコピペ入力してよね"
-			app.bot.PushMessage(userID, linebot.NewTextMessage(strings.TrimSpace(textToSend))).Do()
+			textToSend = textToSend + "済ませたら"
 			for _, kotoTitle := range pushTargetKotoTitles {
-				textToSend = kotoTitle + "をやったよ"
-				app.bot.PushMessage(userID, linebot.NewTextMessage(strings.TrimSpace(textToSend))).Do()
+				textToSend = textToSend + "\"" + kotoTitle + "をやったよ" + "\""
 			}
+			textToSend = textToSend + "の入力をしてね"
+			app.bot.PushMessage(userID, linebot.NewTextMessage(strings.TrimSpace(textToSend))).Do()
 
 			return nil
 		}(userID)
