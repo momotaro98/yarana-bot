@@ -12,6 +12,17 @@ import (
 	"github.com/line/line-bot-sdk-go/linebot"
 )
 
+// TODO: Be global
+
+// ZONE is time zone area
+const ZONE string = "Asia/Tokyo"
+
+// TIMEDIFF is time difference of utc
+const TIMEDIFF int = 9 * 60 * 60
+
+// UserNonActiveDuration is hour period during which BOT determines that the user is inactive
+const UserNonActiveDuration time.Duration = 18
+
 func main() {
 	dataCall, err := NewYaranaDataCall(
 		os.Getenv("YARANA_API_BASE_URL"),
@@ -300,8 +311,8 @@ func (app *Yarana) processGetActivities(replyToken string, userID string, keywor
 	wg.Wait()
 	close(activitiesChannel)
 
-	jst := time.FixedZone("Asia/Tokyo", 9*60*60) // TODO: Move this to proper place
 	// Make text to send
+	timezone := time.FixedZone(ZONE, TIMEDIFF)
 	var textToSend string
 	for acts := range activitiesChannel {
 		if len(acts) > 0 {
@@ -314,7 +325,7 @@ func (app *Yarana) processGetActivities(replyToken string, userID string, keywor
 			textToSend = textToSend + kotoTitle + "\n"
 			for _, act := range acts {
 				// convert to correct time zone
-				usersTimeStamp := act.TimeStamp.In(jst)
+				usersTimeStamp := act.TimeStamp.In(timezone)
 				datetimeForUser := app.makeDatetimeToSendUser(usersTimeStamp)
 				textToSend = textToSend + datetimeForUser + "\n"
 			}
@@ -424,16 +435,14 @@ func (app *Yarana) Batch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	code := codes[0]
-	log.Printf("Got event %s", string(code)) // TODO: remove it
+	log.Printf("Got code: %s", string(code))
 	app.RunBatch()
 }
 
 // RunBatch runs a batch program of yarana-bot
 func (app *Yarana) RunBatch() error {
 	// Get Users
-	// TODO: Implement Get users
-	// here are mock
-	users := []string{os.Getenv("YARANA_MOMOTARO_ID")} // TODO: replace it
+	users := []string{os.Getenv("YARANA_MOMOTARO_ID")} // TODO: replace it because here is mock so far.
 
 	for _, userID := range users {
 		go func(userID string) error {
@@ -462,11 +471,11 @@ func (app *Yarana) RunBatch() error {
 			}
 			wg.Wait()
 			close(activitiesChannel)
-
-			jst := time.FixedZone("Asia/Tokyo", 9*60*60) // TODO: Move this to proper place
 			// filter kotos
+			timezone := time.FixedZone(ZONE, TIMEDIFF)
 			var pushTargetKotoTitles []string
 			for actsInOneKoto := range activitiesChannel {
+				// find title of the Koto
 				var kotoTitle string
 				if len(actsInOneKoto) > 0 {
 					for _, koto := range kotos {
@@ -481,8 +490,8 @@ func (app *Yarana) RunBatch() error {
 				// filter by in a day activity
 				var didUserDoTheKotoInADay bool
 				for _, act := range actsInOneKoto { // TODO: make unit test of this logic
-					usersTimeStamp := act.TimeStamp.In(jst)
-					if usersTimeStamp.After(time.Now().In(jst).Add(time.Hour * -18)) { // TODO: decide the time duration
+					usersTimeStamp := act.TimeStamp.In(timezone)
+					if usersTimeStamp.After(time.Now().In(timezone).Add(-1 * time.Hour * UserNonActiveDuration)) {
 						didUserDoTheKotoInADay = true
 					}
 				}
