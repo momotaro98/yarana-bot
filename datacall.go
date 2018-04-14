@@ -6,6 +6,18 @@ import (
 	"time"
 )
 
+// User is user info in Yarana-Bot
+type User struct {
+	ID string `json:"id"`
+}
+
+// NewUser is constructor of User
+func NewUser(id string) (*User, error) {
+	return &User{
+		ID: id,
+	}, nil
+}
+
 // KotoData is DTO of thing to do in Yarana-Bot
 type KotoData struct {
 	ID     string `json:"id"`
@@ -40,6 +52,7 @@ func NewActivityData(id string, kotoID string, timeStamp time.Time) (*ActivityDa
 
 // DataCall is a alternative of DataCall // TODO: interface for prototype
 type DataCall interface {
+	GetUsers() ([]*User, error)
 	GetKotosByUserID(userID string) ([]*KotoData, error)
 	AddKoto(koto *KotoData) error
 	GetActivitiesByKotoDataID(kotoID string) ([]*ActivityData, error)
@@ -50,18 +63,36 @@ type DataCall interface {
 type YaranaDataCall struct {
 	apiBaseURL        string
 	idLen             int
+	keyForGetUsers    string
 	keyForAddKoto     string
 	keyForAddActivity string
 }
 
 // NewYaranaDataCall is a constructor of YaranaDataCall
-func NewYaranaDataCall(apiBaseURL string, keyForAddKoto string, keyForAddActivity string) (*YaranaDataCall, error) {
+func NewYaranaDataCall(apiBaseURL string, keyForGetUsers string, keyForAddKoto string, keyForAddActivity string) (*YaranaDataCall, error) {
 	return &YaranaDataCall{
 		apiBaseURL:        apiBaseURL,
 		idLen:             32,
+		keyForGetUsers:    keyForGetUsers,
 		keyForAddKoto:     keyForAddKoto,
 		keyForAddActivity: keyForAddActivity,
 	}, nil
+}
+
+// GetUsers is a method of DataCall interface
+func (c *YaranaDataCall) GetUsers() (users []*User, err error) {
+	url := c.apiBaseURL + "users"
+	if c.keyForGetUsers != "" {
+		url = AssembleURLWithParam(url, "code", c.keyForGetUsers)
+	}
+	body, err := HTTPGet(url)
+	if err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal(body, &users); err != nil {
+		return nil, err
+	}
+	return users, nil
 }
 
 // GetKotosByUserID is a method of DataCall interface

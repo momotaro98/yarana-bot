@@ -27,6 +27,7 @@ const UserNonActiveDuration time.Duration = 18
 func main() {
 	dataCall, err := NewYaranaDataCall(
 		os.Getenv("YARANA_API_BASE_URL"),
+		os.Getenv("YARANA_API_GETUSERS_KEY"),
 		os.Getenv("YARANA_API_ADDKOTO_KEY"),
 		os.Getenv("YARANA_API_ADDACTIVITY_KEY"),
 	)
@@ -446,10 +447,13 @@ func (app *Yarana) Batch(w http.ResponseWriter, r *http.Request) {
 // RunBatch runs a batch program of yarana-bot
 func (app *Yarana) RunBatch() error {
 	// Get Users
-	users := []string{os.Getenv("YARANA_MOMOTARO_ID")} // TODO: replace it because here is mock so far.
+	users, err := app.dataCall.GetUsers()
+	if err != nil {
+		return err
+	}
 	// Push to users
-	for _, userID := range users {
-		go app.RunPushBatch(userID)
+	for _, user := range users {
+		go app.RunPushBatch(user.ID)
 	}
 	return nil
 }
