@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -323,6 +324,9 @@ func (app *Yarana) processGetActivities(replyToken string, userID string, keywor
 				}
 			}
 			textToSend = textToSend + kotoTitle + "\n"
+			sort.SliceStable(acts, func(i, j int) bool {
+				return acts[i].TimeStamp.After(acts[j].TimeStamp)
+			})
 			for _, act := range acts {
 				// convert to correct time zone
 				usersTimeStamp := act.TimeStamp.In(timezone)
