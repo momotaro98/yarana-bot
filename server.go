@@ -539,6 +539,7 @@ func (app *Yarana) RunPushBatch(user *User) error {
 	}
 	textToSend = textToSend + "の入力をしてね"
 	app.bot.PushMessage(user.ID, linebot.NewTextMessage(strings.TrimSpace(textToSend))).Do()
+	log.Printf("Bot pushed message to userId, %s. Pushed message: %s", user.ID, textToSend)
 
 	return nil
 }
