@@ -24,6 +24,9 @@ const TIMEDIFF int = 9 * 60 * 60
 // UserNonActiveDuration is hour period during which BOT determines that the user is inactive
 const UserNonActiveDuration time.Duration = 18
 
+// DefaultPushDisabled is boolean which the batch app pushes message of the Koto to the user
+const DefaultPushDisabled bool = false
+
 func main() {
 	dataCall, err := NewYaranaDataCall(
 		os.Getenv("YARANA_API_BASE_URL"),
@@ -246,7 +249,7 @@ func (app *Yarana) processAddKoto(replyToken string, userID string, keyword stri
 		}
 	}
 
-	kotoToAdd, _ := NewKotoData("", userID, keyword)
+	kotoToAdd, _ := NewKotoData("", userID, keyword, DefaultPushDisabled)
 	errChan := make(chan error, 1)
 
 	// Add Koto Data
@@ -461,15 +464,21 @@ func (app *Yarana) RunBatch() error {
 // RunPushBatch runs a batch program of yarana-bot
 func (app *Yarana) RunPushBatch(user *User) error {
 	// Get Kotos of the user
-	kotos, err := app.dataCall.GetKotosByUserID(user.ID)
+	allKotos, err := app.dataCall.GetKotosByUserID(user.ID)
 	if err != nil {
 		return err
 	}
-	if len(kotos) == 0 || kotos == nil {
+	if len(allKotos) == 0 || allKotos == nil {
 		return nil // nothing to do if the user has no kotos
 	}
 
-	// TODO: Filter Kotos which has no-push flag
+	// Filter Kotos whose pushDisabled is true or false
+	var kotos []*KotoData
+	for _, koto := range allKotos {
+		if !koto.PushDisabled {
+			kotos = append(kotos, koto)
+		}
+	}
 
 	// Filter Kotos which have no activities in a day
 	// get Activities in parallel

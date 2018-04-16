@@ -35,12 +35,12 @@ func (c *StandardYaranaDataCallMock) GetKotosByUserID(userID string) ([]*KotoDat
 	// Get Koto by userID from something
 	id := "0123456789a"
 	title := "TestTitle"
-	koto, err := NewKotoData(id, userID, title)
+	koto, err := NewKotoData(id, userID, title, false)
 	if err != nil {
 		return nil, err
 	}
 	title2 := "TestTitle2"
-	koto2, err := NewKotoData(id, userID, title2)
+	koto2, err := NewKotoData(id, userID, title2, false)
 	if err != nil {
 		return nil, err
 	}
@@ -313,7 +313,7 @@ func (c *NoActivityYaranaDataCallMock) GetKotosByUserID(userID string) ([]*KotoD
 	// Get Koto by userID from something
 	id := "0123456789a"
 	title := "TestTitle"
-	koto, err := NewKotoData(id, userID, title)
+	koto, err := NewKotoData(id, userID, title, false)
 	if err != nil {
 		return nil, err
 	}

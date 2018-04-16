@@ -20,17 +20,19 @@ func NewUser(id string) (*User, error) {
 
 // KotoData is DTO of thing to do in Yarana-Bot
 type KotoData struct {
-	ID     string `json:"id"`
-	UserID string `json:"userId"`
-	Title  string `json:"title"`
+	ID           string `json:"id"`
+	UserID       string `json:"userId"`
+	Title        string `json:"title"`
+	PushDisabled bool   `json:"pushDisabled"`
 }
 
 // NewKotoData is constructor of KotoData
-func NewKotoData(id string, userID string, title string) (*KotoData, error) {
+func NewKotoData(id string, userID string, title string, pushDisabled bool) (*KotoData, error) {
 	return &KotoData{
-		ID:     id,
-		UserID: userID,
-		Title:  title,
+		ID:           id,
+		UserID:       userID,
+		Title:        title,
+		PushDisabled: pushDisabled,
 	}, nil
 }
 
