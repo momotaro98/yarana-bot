@@ -453,15 +453,15 @@ func (app *Yarana) RunBatch() error {
 	}
 	// Push to users
 	for _, user := range users {
-		go app.RunPushBatch(user.ID)
+		go app.RunPushBatch(user)
 	}
 	return nil
 }
 
 // RunPushBatch runs a batch program of yarana-bot
-func (app *Yarana) RunPushBatch(userID string) error {
+func (app *Yarana) RunPushBatch(user *User) error {
 	// Get Kotos of the user
-	kotos, err := app.dataCall.GetKotosByUserID(userID)
+	kotos, err := app.dataCall.GetKotosByUserID(user.ID)
 	if err != nil {
 		return err
 	}
@@ -523,7 +523,7 @@ func (app *Yarana) RunPushBatch(userID string) error {
 		textToSend = textToSend + "\"" + kotoTitle + "をやったよ" + "\""
 	}
 	textToSend = textToSend + "の入力をしてね"
-	app.bot.PushMessage(userID, linebot.NewTextMessage(strings.TrimSpace(textToSend))).Do()
+	app.bot.PushMessage(user.ID, linebot.NewTextMessage(strings.TrimSpace(textToSend))).Do()
 
 	return nil
 }
