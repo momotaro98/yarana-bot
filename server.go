@@ -469,7 +469,7 @@ func (app *Yarana) RunPushBatch(user *User) error {
 		return err
 	}
 	if len(allKotos) == 0 || allKotos == nil {
-		return nil // nothing to do if the user has no kotos
+		return nil // do nothing if the user has no kotos
 	}
 
 	// Filter Kotos whose pushDisabled is true or false
@@ -478,6 +478,9 @@ func (app *Yarana) RunPushBatch(user *User) error {
 		if !koto.PushDisabled {
 			kotos = append(kotos, koto)
 		}
+	}
+	if len(kotos) == 0 { // TODO: Add unit test if the all flags are true, do nothing
+		return nil // do nothing if the all of pushDisabled flags are true
 	}
 
 	// Filter Kotos which have no activities in a day
@@ -521,6 +524,9 @@ func (app *Yarana) RunPushBatch(user *User) error {
 		if !didUserDoTheKotoInADay {
 			pushTargetKotoTitles = append(pushTargetKotoTitles, kotoTitle)
 		}
+	}
+	if len(pushTargetKotoTitles) == 0 {
+		return nil
 	}
 
 	// Make text to send and Push message to the user with package of the kotos
