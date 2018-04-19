@@ -439,11 +439,15 @@ func (app *Yarana) makeDatetimeToSendUser(timestamp time.Time) string {
 func (app *Yarana) Batch(w http.ResponseWriter, r *http.Request) {
 	codes, ok := r.URL.Query()["code"]
 	if !ok || len(codes) != 1 {
-		log.Println("Url Param 'code' is missing")
+		log.Println("Batch kick key (URL param 'code') is missing")
 		return
 	}
 	code := codes[0]
-	log.Printf("Got code: %s", string(code))
+	// Check if the request url param is correct
+	if code != app.getPushBatchKickKey() {
+		log.Printf("Got wrong batch kick key (URL param 'code'): %s", string(code))
+		return
+	}
 	app.RunBatch()
 }
 
@@ -542,4 +546,8 @@ func (app *Yarana) RunPushBatch(user *User) error {
 	log.Printf("Bot pushed message to userId, %s. Pushed message: %s", user.ID, textToSend)
 
 	return nil
+}
+
+func (app *Yarana) getPushBatchKickKey() string {
+	return os.Getenv("YARANA_PUSH_BATCH_KICK_KEY")
 }
