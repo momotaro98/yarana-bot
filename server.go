@@ -13,13 +13,11 @@ import (
 	"github.com/line/line-bot-sdk-go/linebot"
 )
 
-// TODO: Be global
-
 // ZONE is time zone area
-const ZONE string = "Asia/Tokyo"
+const ZONE string = "Asia/Tokyo" // TODO: be global
 
 // TIMEDIFF is time difference of utc
-const TIMEDIFF int = 9 * 60 * 60
+const TIMEDIFF int = 9 * 60 * 60 // TODO: be global
 
 // UserNonActiveDuration is hour period during which BOT determines that the user is inactive
 const UserNonActiveDuration time.Duration = 18
@@ -458,7 +456,7 @@ func (app *Yarana) RunBatch() error {
 	if err != nil {
 		return err
 	}
-	// Push to users
+	// Push message to users
 	for _, user := range users {
 		go app.RunPushBatch(user)
 	}
@@ -476,7 +474,7 @@ func (app *Yarana) RunPushBatch(user *User) error {
 		return nil // do nothing if the user has no kotos
 	}
 
-	// Filter Kotos whose pushDisabled is true or false
+	// Filter Kotos whose pushDisabled is true
 	var kotos []*KotoData
 	for _, koto := range allKotos {
 		if !koto.PushDisabled {

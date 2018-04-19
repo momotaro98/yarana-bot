@@ -52,7 +52,7 @@ func NewActivityData(id string, kotoID string, timeStamp time.Time) (*ActivityDa
 	}, nil
 }
 
-// DataCall is a alternative of DataCall // TODO: interface for prototype
+// DataCall is a main interface for Yarana data
 type DataCall interface {
 	GetUsers() ([]*User, error)
 	GetKotosByUserID(userID string) ([]*KotoData, error)
