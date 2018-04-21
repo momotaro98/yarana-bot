@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -12,9 +13,22 @@ import (
 	"github.com/line/line-bot-sdk-go/linebot"
 )
 
+// ZONE is time zone area
+const ZONE string = "Asia/Tokyo" // TODO: be global
+
+// TIMEDIFF is time difference of utc
+const TIMEDIFF int = 9 * 60 * 60 // TODO: be global
+
+// UserNonActiveDuration is hour period during which BOT determines that the user is inactive
+const UserNonActiveDuration time.Duration = 18
+
+// DefaultPushDisabled is boolean which the batch app pushes message of the Koto to the user
+const DefaultPushDisabled bool = false
+
 func main() {
 	dataCall, err := NewYaranaDataCall(
 		os.Getenv("YARANA_API_BASE_URL"),
+		os.Getenv("YARANA_API_GETUSERS_KEY"),
 		os.Getenv("YARANA_API_ADDKOTO_KEY"),
 		os.Getenv("YARANA_API_ADDACTIVITY_KEY"),
 	)
@@ -32,6 +46,7 @@ func main() {
 	}
 
 	http.HandleFunc("/callback", app.Callback)
+	http.HandleFunc("/batch", app.Batch)
 	if err := http.ListenAndServe(":"+os.Getenv("PORT"), nil); err != nil {
 		log.Fatal(err)
 	}
@@ -232,7 +247,7 @@ func (app *Yarana) processAddKoto(replyToken string, userID string, keyword stri
 		}
 	}
 
-	kotoToAdd, _ := NewKotoData("", userID, keyword)
+	kotoToAdd, _ := NewKotoData("", userID, keyword, DefaultPushDisabled)
 	errChan := make(chan error, 1)
 
 	// Add Koto Data
@@ -299,8 +314,8 @@ func (app *Yarana) processGetActivities(replyToken string, userID string, keywor
 	wg.Wait()
 	close(activitiesChannel)
 
-	jst := time.FixedZone("Asia/Tokyo", 9*60*60) // TODO: Move this to proper place
 	// Make text to send
+	timezone := time.FixedZone(ZONE, TIMEDIFF)
 	var textToSend string
 	for acts := range activitiesChannel {
 		if len(acts) > 0 {
@@ -311,9 +326,12 @@ func (app *Yarana) processGetActivities(replyToken string, userID string, keywor
 				}
 			}
 			textToSend = textToSend + kotoTitle + "\n"
+			sort.SliceStable(acts, func(i, j int) bool {
+				return acts[i].TimeStamp.After(acts[j].TimeStamp)
+			})
 			for _, act := range acts {
 				// convert to correct time zone
-				usersTimeStamp := act.TimeStamp.In(jst)
+				usersTimeStamp := act.TimeStamp.In(timezone)
 				datetimeForUser := app.makeDatetimeToSendUser(usersTimeStamp)
 				textToSend = textToSend + datetimeForUser + "\n"
 			}
@@ -413,4 +431,121 @@ func (app *Yarana) makeDatetimeToSendUser(timestamp time.Time) string {
 		datetimeStr = datetimeStr[:16] // "2009-11-10 23:00" from 2009-11-10 23:00:00 +0000 UTC m=+0.000000001
 	}
 	return datetimeStr
+}
+
+// Batch is hunde function for running a batch program
+func (app *Yarana) Batch(w http.ResponseWriter, r *http.Request) {
+	codes, ok := r.URL.Query()["code"]
+	if !ok || len(codes) != 1 {
+		log.Println("Batch kick key (URL param 'code') is missing")
+		return
+	}
+	code := codes[0]
+	// Check if the request url param is correct
+	if code != app.getPushBatchKickKey() {
+		log.Printf("Got wrong batch kick key (URL param 'code'): %s", string(code))
+		return
+	}
+	app.RunBatch()
+}
+
+// RunBatch runs a batch program of yarana-bot
+func (app *Yarana) RunBatch() error {
+	// Get Users
+	users, err := app.dataCall.GetUsers()
+	if err != nil {
+		return err
+	}
+	// Push message to users
+	for _, user := range users {
+		go app.RunPushBatch(user)
+	}
+	return nil
+}
+
+// RunPushBatch runs a batch program of yarana-bot
+func (app *Yarana) RunPushBatch(user *User) error {
+	// Get Kotos of the user
+	allKotos, err := app.dataCall.GetKotosByUserID(user.ID)
+	if err != nil {
+		return err
+	}
+	if len(allKotos) == 0 || allKotos == nil {
+		return nil // do nothing if the user has no kotos
+	}
+
+	// Filter Kotos whose pushDisabled is true
+	var kotos []*KotoData
+	for _, koto := range allKotos {
+		if !koto.PushDisabled {
+			kotos = append(kotos, koto)
+		}
+	}
+	if len(kotos) == 0 { // TODO: Add unit test if the all flags are true, do nothing
+		return nil // do nothing if the all of pushDisabled flags are true
+	}
+
+	// Filter Kotos which have no activities in a day
+	// get Activities in parallel
+	activitiesChannel := make(chan []*ActivityData, len(kotos))
+	wg := &sync.WaitGroup{}
+	for _, koto := range kotos {
+		wg.Add(1)
+		go func(kotoId string) {
+			acts, _ := app.dataCall.GetActivitiesByKotoDataID(kotoId)
+			activitiesChannel <- acts
+			wg.Done()
+		}(koto.ID)
+	}
+	wg.Wait()
+	close(activitiesChannel)
+	// filter kotos
+	timezone := time.FixedZone(ZONE, TIMEDIFF)
+	var pushTargetKotoTitles []string
+	for actsInOneKoto := range activitiesChannel {
+		// find title of the Koto
+		var kotoTitle string
+		if len(actsInOneKoto) > 0 {
+			for _, koto := range kotos {
+				if koto.ID == actsInOneKoto[0].KotoID {
+					kotoTitle = koto.Title
+				}
+			}
+		}
+		if kotoTitle == "" {
+			continue
+		}
+		// filter by in a day activity
+		var didUserDoTheKotoInADay bool
+		for _, act := range actsInOneKoto { // TODO: make unit test of this logic
+			usersTimeStamp := act.TimeStamp.In(timezone)
+			if usersTimeStamp.After(time.Now().In(timezone).Add(-1 * time.Hour * UserNonActiveDuration)) {
+				didUserDoTheKotoInADay = true
+			}
+		}
+		if !didUserDoTheKotoInADay {
+			pushTargetKotoTitles = append(pushTargetKotoTitles, kotoTitle)
+		}
+	}
+	if len(pushTargetKotoTitles) == 0 {
+		return nil
+	}
+
+	// Make text to send and Push message to the user with package of the kotos
+	var textToSend string
+	textToSend = strings.Join(pushTargetKotoTitles, "と") + "は今日やったのかしら！？"
+	textToSend = textToSend + "\n"
+	textToSend = textToSend + "済ませたら"
+	for _, kotoTitle := range pushTargetKotoTitles {
+		textToSend = textToSend + "\"" + kotoTitle + "をやったよ" + "\""
+	}
+	textToSend = textToSend + "の入力をしてね"
+	app.bot.PushMessage(user.ID, linebot.NewTextMessage(strings.TrimSpace(textToSend))).Do()
+	log.Printf("Bot pushed message to userId, %s. Pushed message: %s", user.ID, textToSend)
+
+	return nil
+}
+
+func (app *Yarana) getPushBatchKickKey() string {
+	return os.Getenv("YARANA_PUSH_BATCH_KICK_KEY")
 }

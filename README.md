@@ -2,7 +2,7 @@
 
 Bot application in LINE to help you to do regularly
 
-![yarana-bot_demo](https://raw.githubusercontent.com/momotaro98/my-project-images/master/yarana-bot/yarana-bot-v1.1.gif)
+![yarana-bot_demo](https://raw.githubusercontent.com/momotaro98/my-project-images/master/yarana-bot/yanara-bot-v1.2.gif)
 
 ## Features
 
@@ -11,6 +11,10 @@ Bot application in LINE to help you to do regularly
 * Register what you want to do regularly
 * Record it when you do
 * Show you the records
+
+### Push function
+
+* Push message at 10:00PM(JST) if you didn't record your activity.
 
 ## Usage
 

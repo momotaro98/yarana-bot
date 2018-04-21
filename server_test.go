@@ -17,17 +17,30 @@ func NewStandardYaranaDataCallMock() (*StandardYaranaDataCallMock, error) {
 	return &StandardYaranaDataCallMock{}, nil
 }
 
+// GetUsers is a method of DataCall interface
+func (c *StandardYaranaDataCallMock) GetUsers() ([]*User, error) {
+	user1, err := NewUser("0123456789a")
+	if err != nil {
+		return nil, err
+	}
+	user2, err := NewUser("0123456789b")
+	if err != nil {
+		return nil, err
+	}
+	return []*User{user1, user2}, nil
+}
+
 // GetKotosByUserID is a method of DataCall interface
 func (c *StandardYaranaDataCallMock) GetKotosByUserID(userID string) ([]*KotoData, error) {
 	// Get Koto by userID from something
 	id := "0123456789a"
 	title := "TestTitle"
-	koto, err := NewKotoData(id, userID, title)
+	koto, err := NewKotoData(id, userID, title, false)
 	if err != nil {
 		return nil, err
 	}
 	title2 := "TestTitle2"
-	koto2, err := NewKotoData(id, userID, title2)
+	koto2, err := NewKotoData(id, userID, title2, false)
 	if err != nil {
 		return nil, err
 	}
@@ -64,9 +77,9 @@ func (c *StandardYaranaDataCallMock) AddActivity(activity *ActivityData) error {
 func TestProcessGetKotosStandard(t *testing.T) {
 	dataCall, _ := NewStandardYaranaDataCallMock()
 	app, _ := NewYarana(
-		"TEST_YARANA_API_BASE_URL",
-		"TEST_YARANA_API_ADDKOTO_KEY",
-		"TEST_YARANA_API_ADDACTIVITY_KEY",
+		"TEST_CHANNEL_SECRET",
+		"TEST_CHANNEL_TOKEN",
+		"TEST_ENDPOINT_BASE",
 		dataCall,
 	)
 
@@ -84,9 +97,9 @@ func TestProcessGetKotosStandard(t *testing.T) {
 func TestProcessAddKotosStandard(t *testing.T) {
 	dataCall, _ := NewStandardYaranaDataCallMock()
 	app, _ := NewYarana(
-		"TEST_YARANA_API_BASE_URL",
-		"TEST_YARANA_API_ADDKOTO_KEY",
-		"TEST_YARANA_API_ADDACTIVITY_KEY",
+		"TEST_CHANNEL_SECRET",
+		"TEST_CHANNEL_TOKEN",
+		"TEST_ENDPOINT_BASE",
 		dataCall,
 	)
 
@@ -114,9 +127,9 @@ func TestProcessAddKotosStandard(t *testing.T) {
 func TestProcessGetActivitiesStandard(t *testing.T) {
 	dataCall, _ := NewStandardYaranaDataCallMock()
 	app, _ := NewYarana(
-		"TEST_YARANA_API_BASE_URL",
-		"TEST_YARANA_API_ADDKOTO_KEY",
-		"TEST_YARANA_API_ADDACTIVITY_KEY",
+		"TEST_CHANNEL_SECRET",
+		"TEST_CHANNEL_TOKEN",
+		"TEST_ENDPOINT_BASE",
 		dataCall,
 	)
 
@@ -134,9 +147,9 @@ func TestProcessGetActivitiesStandard(t *testing.T) {
 func TestProcessAddActivityStandard(t *testing.T) {
 	dataCall, _ := NewStandardYaranaDataCallMock()
 	app, _ := NewYarana(
-		"TEST_YARANA_API_BASE_URL",
-		"TEST_YARANA_API_ADDKOTO_KEY",
-		"TEST_YARANA_API_ADDACTIVITY_KEY",
+		"TEST_CHANNEL_SECRET",
+		"TEST_CHANNEL_TOKEN",
+		"TEST_ENDPOINT_BASE",
 		dataCall,
 	)
 
@@ -171,6 +184,11 @@ func NewNoKotoYaranaDataCallMock() (*NoKotoYaranaDataCallMock, error) {
 	return &NoKotoYaranaDataCallMock{}, nil
 }
 
+// GetUsers is a method of DataCall interface
+func (c *NoKotoYaranaDataCallMock) GetUsers() ([]*User, error) {
+	return []*User{}, nil
+}
+
 // GetKotosByUserID is a method of DataCall interface
 func (c *NoKotoYaranaDataCallMock) GetKotosByUserID(userID string) ([]*KotoData, error) {
 	return []*KotoData{}, nil
@@ -194,9 +212,9 @@ func (c *NoKotoYaranaDataCallMock) AddActivity(activity *ActivityData) error {
 func TestProcessGetKotosNoKoto(t *testing.T) {
 	dataCall, _ := NewNoKotoYaranaDataCallMock()
 	app, _ := NewYarana(
-		"TEST_YARANA_API_BASE_URL",
-		"TEST_YARANA_API_ADDKOTO_KEY",
-		"TEST_YARANA_API_ADDACTIVITY_KEY",
+		"TEST_CHANNEL_SECRET",
+		"TEST_CHANNEL_TOKEN",
+		"TEST_ENDPOINT_BASE",
 		dataCall,
 	)
 
@@ -213,9 +231,9 @@ func TestProcessGetKotosNoKoto(t *testing.T) {
 func TestProcessAddKotoNoKoto(t *testing.T) {
 	dataCall, _ := NewNoKotoYaranaDataCallMock()
 	app, _ := NewYarana(
-		"TEST_YARANA_API_BASE_URL",
-		"TEST_YARANA_API_ADDKOTO_KEY",
-		"TEST_YARANA_API_ADDACTIVITY_KEY",
+		"TEST_CHANNEL_SECRET",
+		"TEST_CHANNEL_TOKEN",
+		"TEST_ENDPOINT_BASE",
 		dataCall,
 	)
 
@@ -233,9 +251,9 @@ func TestProcessAddKotoNoKoto(t *testing.T) {
 func TestProcessGetActivitiesNoKoto(t *testing.T) {
 	dataCall, _ := NewNoKotoYaranaDataCallMock()
 	app, _ := NewYarana(
-		"TEST_YARANA_API_BASE_URL",
-		"TEST_YARANA_API_ADDKOTO_KEY",
-		"TEST_YARANA_API_ADDACTIVITY_KEY",
+		"TEST_CHANNEL_SECRET",
+		"TEST_CHANNEL_TOKEN",
+		"TEST_ENDPOINT_BASE",
 		dataCall,
 	)
 
@@ -252,9 +270,9 @@ func TestProcessGetActivitiesNoKoto(t *testing.T) {
 func TestProcessAddActivityNoKoto(t *testing.T) {
 	dataCall, _ := NewNoKotoYaranaDataCallMock()
 	app, _ := NewYarana(
-		"TEST_YARANA_API_BASE_URL",
-		"TEST_YARANA_API_ADDKOTO_KEY",
-		"TEST_YARANA_API_ADDACTIVITY_KEY",
+		"TEST_CHANNEL_SECRET",
+		"TEST_CHANNEL_TOKEN",
+		"TEST_ENDPOINT_BASE",
 		dataCall,
 	)
 
@@ -277,12 +295,25 @@ func NewNoActivityYaranaDataCallMock() (*NoActivityYaranaDataCallMock, error) {
 	return &NoActivityYaranaDataCallMock{}, nil
 }
 
+// GetUsers is a method of DataCall interface
+func (c *NoActivityYaranaDataCallMock) GetUsers() ([]*User, error) {
+	user1, err := NewUser("0123456789a")
+	if err != nil {
+		return nil, err
+	}
+	user2, err := NewUser("0123456789b")
+	if err != nil {
+		return nil, err
+	}
+	return []*User{user1, user2}, nil
+}
+
 // GetKotosByUserID is a method of DataCall interface
 func (c *NoActivityYaranaDataCallMock) GetKotosByUserID(userID string) ([]*KotoData, error) {
 	// Get Koto by userID from something
 	id := "0123456789a"
 	title := "TestTitle"
-	koto, err := NewKotoData(id, userID, title)
+	koto, err := NewKotoData(id, userID, title, false)
 	if err != nil {
 		return nil, err
 	}
@@ -307,9 +338,9 @@ func (c *NoActivityYaranaDataCallMock) AddActivity(activity *ActivityData) error
 func TestProcessGetActivitiesNoActivity(t *testing.T) {
 	dataCall, _ := NewNoActivityYaranaDataCallMock()
 	app, _ := NewYarana(
-		"TEST_YARANA_API_BASE_URL",
-		"TEST_YARANA_API_ADDKOTO_KEY",
-		"TEST_YARANA_API_ADDACTIVITY_KEY",
+		"TEST_CHANNEL_SECRET",
+		"TEST_CHANNEL_TOKEN",
+		"TEST_ENDPOINT_BASE",
 		dataCall,
 	)
 
@@ -326,9 +357,9 @@ func TestProcessGetActivitiesNoActivity(t *testing.T) {
 func TestProcessAddActivityNoActivity(t *testing.T) {
 	dataCall, _ := NewNoActivityYaranaDataCallMock()
 	app, _ := NewYarana(
-		"TEST_YARANA_API_BASE_URL",
-		"TEST_YARANA_API_ADDKOTO_KEY",
-		"TEST_YARANA_API_ADDACTIVITY_KEY",
+		"TEST_CHANNEL_SECRET",
+		"TEST_CHANNEL_TOKEN",
+		"TEST_ENDPOINT_BASE",
 		dataCall,
 	)
 
