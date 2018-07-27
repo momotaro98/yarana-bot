@@ -487,46 +487,29 @@ func (app *Yarana) RunPushBatch(user *User) error {
 
 	// Filter Kotos which have no activities in a day
 	// get Activities in parallel
-	activitiesChannel := make(chan []*ActivityData, len(kotos))
+	var mutex = &sync.Mutex{}
 	wg := &sync.WaitGroup{}
+	var pushTargetKotoTitles []string
 	for _, koto := range kotos {
 		wg.Add(1)
-		go func(kotoId string) {
+		go func(kotoId string, kotoTitle string) {
 			acts, _ := app.dataCall.GetActivitiesByKotoDataID(kotoId)
-			activitiesChannel <- acts
-			wg.Done()
-		}(koto.ID)
-	}
-	wg.Wait()
-	close(activitiesChannel)
-	// filter kotos
-	timezone := time.FixedZone(ZONE, TIMEDIFF)
-	var pushTargetKotoTitles []string
-	for actsInOneKoto := range activitiesChannel {
-		// find title of the Koto
-		var kotoTitle string
-		if len(actsInOneKoto) > 0 {
-			for _, koto := range kotos {
-				if koto.ID == actsInOneKoto[0].KotoID {
-					kotoTitle = koto.Title
+			if len(acts) < 1 {
+				mutex.Lock()
+				pushTargetKotoTitles = append(pushTargetKotoTitles, kotoTitle)
+				mutex.Unlock()
+			} else {
+				if !CheckIfUserDidTheKotoInADay(acts) {
+					mutex.Lock()
+					pushTargetKotoTitles = append(pushTargetKotoTitles, kotoTitle)
+					mutex.Unlock()
 				}
 			}
-		}
-		if kotoTitle == "" {
-			continue
-		}
-		// filter by in a day activity
-		var didUserDoTheKotoInADay bool
-		for _, act := range actsInOneKoto { // TODO: make unit test of this logic
-			usersTimeStamp := act.TimeStamp.In(timezone)
-			if usersTimeStamp.After(time.Now().In(timezone).Add(-1 * time.Hour * UserNonActiveDuration)) {
-				didUserDoTheKotoInADay = true
-			}
-		}
-		if !didUserDoTheKotoInADay {
-			pushTargetKotoTitles = append(pushTargetKotoTitles, kotoTitle)
-		}
+			wg.Done()
+		}(koto.ID, koto.Title)
 	}
+	wg.Wait()
+
 	if len(pushTargetKotoTitles) == 0 {
 		return nil
 	}
@@ -548,4 +531,16 @@ func (app *Yarana) RunPushBatch(user *User) error {
 
 func (app *Yarana) getPushBatchKickKey() string {
 	return os.Getenv("YARANA_PUSH_BATCH_KICK_KEY")
+}
+
+func CheckIfUserDidTheKotoInADay(activities []*ActivityData) (didUserDoTheKotoInADay bool) {
+	timezone := time.FixedZone(ZONE, TIMEDIFF)
+	// filter by in a day activity
+	for _, act := range activities {
+		usersTimeStamp := act.TimeStamp.In(timezone)
+		if usersTimeStamp.After(time.Now().In(timezone).Add(-1 * time.Hour * UserNonActiveDuration)) {
+			didUserDoTheKotoInADay = true
+		}
+	}
+	return didUserDoTheKotoInADay
 }
