@@ -481,52 +481,36 @@ func (app *Yarana) RunPushBatch(user *User) error {
 			kotos = append(kotos, koto)
 		}
 	}
-	if len(kotos) == 0 { // TODO: Add unit test if the all flags are true, do nothing
-		return nil // do nothing if the all of pushDisabled flags are true
+	if len(kotos) == 0 { // TODO: Add unit test
+		return nil // Do nothing if the all of pushDisabled flags are true
 	}
 
-	// Filter Kotos which have no activities in a day
-	// get Activities in parallel
-	activitiesChannel := make(chan []*ActivityData, len(kotos))
+	// Find kotos to send to users as notification
+	var mutex = &sync.Mutex{}
 	wg := &sync.WaitGroup{}
+	var pushTargetKotoTitles []string
 	for _, koto := range kotos {
 		wg.Add(1)
-		go func(kotoId string) {
+		go func(kotoId string, kotoTitle string) {
 			acts, _ := app.dataCall.GetActivitiesByKotoDataID(kotoId)
-			activitiesChannel <- acts
-			wg.Done()
-		}(koto.ID)
-	}
-	wg.Wait()
-	close(activitiesChannel)
-	// filter kotos
-	timezone := time.FixedZone(ZONE, TIMEDIFF)
-	var pushTargetKotoTitles []string
-	for actsInOneKoto := range activitiesChannel {
-		// find title of the Koto
-		var kotoTitle string
-		if len(actsInOneKoto) > 0 {
-			for _, koto := range kotos {
-				if koto.ID == actsInOneKoto[0].KotoID {
-					kotoTitle = koto.Title
+			if len(acts) < 1 {
+				// If the koto doesn't have no activities, our bot sends notification.
+				mutex.Lock()
+				pushTargetKotoTitles = append(pushTargetKotoTitles, kotoTitle)
+				mutex.Unlock()
+			} else {
+				if !CheckIfUserDidTheKotoInADay(acts) {
+					// If a user don't do the koto in a day, our bot sends notification.
+					mutex.Lock()
+					pushTargetKotoTitles = append(pushTargetKotoTitles, kotoTitle)
+					mutex.Unlock()
 				}
 			}
-		}
-		if kotoTitle == "" {
-			continue
-		}
-		// filter by in a day activity
-		var didUserDoTheKotoInADay bool
-		for _, act := range actsInOneKoto { // TODO: make unit test of this logic
-			usersTimeStamp := act.TimeStamp.In(timezone)
-			if usersTimeStamp.After(time.Now().In(timezone).Add(-1 * time.Hour * UserNonActiveDuration)) {
-				didUserDoTheKotoInADay = true
-			}
-		}
-		if !didUserDoTheKotoInADay {
-			pushTargetKotoTitles = append(pushTargetKotoTitles, kotoTitle)
-		}
+			wg.Done()
+		}(koto.ID, koto.Title)
 	}
+	wg.Wait()
+
 	if len(pushTargetKotoTitles) == 0 {
 		return nil
 	}
@@ -548,4 +532,16 @@ func (app *Yarana) RunPushBatch(user *User) error {
 
 func (app *Yarana) getPushBatchKickKey() string {
 	return os.Getenv("YARANA_PUSH_BATCH_KICK_KEY")
+}
+
+// CheckIfUserDidTheKotoInADay checks if taken activities has an activity which is done in a day.
+func CheckIfUserDidTheKotoInADay(activities []*ActivityData) (didUserDoTheKotoInADay bool) {
+	timezone := time.FixedZone(ZONE, TIMEDIFF)
+	for _, act := range activities {
+		usersTimeStamp := act.TimeStamp.In(timezone)
+		if usersTimeStamp.After(time.Now().In(timezone).Add(-1 * time.Hour * UserNonActiveDuration)) {
+			didUserDoTheKotoInADay = true
+		}
+	}
+	return didUserDoTheKotoInADay
 }
