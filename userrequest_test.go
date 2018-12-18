@@ -5,6 +5,23 @@ import (
 	"testing"
 )
 
+func TestAnalyzeInputText_RegularText_HelpType(t *testing.T) {
+	// Arrange
+	text := "Help"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	if err != nil {
+		t.Fatal("There should not be error", " Got error: ", err, "input text: ", text)
+	}
+	if reqType != RequestTypeHelp {
+		t.Fatal("The request type is not correct, input text: ", text)
+	}
+	if keyword != "" {
+		t.Fatal("The keyword is not correct, input text: ", text)
+	}
+}
+
 func TestAnalyzeInputTextCaseStandard(t *testing.T) {
 	// Command case
 	// RequestTypeHelp case
