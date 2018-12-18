@@ -2,9 +2,9 @@ package main
 
 import (
 		"testing"
-)
+	)
 
-func TestAnalyzeInputText_RegularText_HelpType(t *testing.T) {
+func TestAnalyzeInputText_SingleCommand_HelpType(t *testing.T) {
 	// Arrange
 	text := "Help"
 	// Act
@@ -21,73 +21,96 @@ func TestAnalyzeInputText_RegularText_HelpType(t *testing.T) {
 	}
 }
 
+func TestAnalyzeInputText_SingleCommand_GetKotosType(t *testing.T) {
+	// Arrange
+	text := "GetKotos"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	if err != nil {
+		t.Fatal("There should not be error", " Got error: ", err, "input text: ", text)
+	}
+	if reqType != RequestTypeGetKotos {
+		t.Fatal("The request type is not correct, input text: ", text)
+	}
+	if keyword != "" {
+		t.Fatal("The keyword is not correct, input text: ", text)
+	}
+}
+
+func TestAnalyzeInputText_CommandWithKeyword_AddKotoType(t *testing.T) {
+	// Arrange
+	text := "AddKoto training"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	if err != nil {
+		t.Fatal("There should not be error", " Got error: ", err, "input text: ", text)
+	}
+	if reqType != RequestTypeAddKoto {
+		t.Fatal("The request type is not correct, input text: ", text)
+	}
+	if keyword != "training" {
+		t.Fatal("The keyword is not correct, input text: ", text)
+	}
+}
+
+func TestAnalyzeInputText_SingleCommand_GetActivitiesType(t *testing.T) {
+	// Arrange
+	text := "GetActivities"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	if err != nil {
+		t.Fatal("There should not be error", " Got error: ", err, "input text: ", text)
+	}
+	if reqType != RequestTypeGetActivities {
+		t.Fatal("The request type is not correct, input text: ", text)
+	}
+	if keyword != "" {
+		t.Fatal("The keyword is not correct, input text: ", text)
+	}
+}
+
+func TestAnalyzeInputText_CommandWithKeyword_GetActivitiesAndKeyword(t *testing.T) {
+	// Arrange
+	text := "GetActivities training"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	if err != nil {
+		t.Fatal("There should not be error", " Got error: ", err, "input text: ", text)
+	}
+	if reqType != RequestTypeGetActivities {
+		t.Fatal("The request type is not correct, input text: ", text)
+	}
+	if keyword != "training" {
+		t.Fatal("The keyword is not correct, input text: ", text)
+	}
+}
+
+func TestAnalyzeInputText_CommandWithKeyword_AddActivityType(t *testing.T) {
+	// Arrange
+	text := "AddActivity training"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	if err != nil {
+		t.Fatal("There should not be error", " Got error: ", err, "input text: ", text)
+	}
+	if reqType != RequestTypeAddActivity {
+		t.Fatal("The request type is not correct, input text: ", text)
+	}
+	if keyword != "training" {
+		t.Fatal("The keyword is not correct, input text: ", text)
+	}
+}
+
 /*
 func TestAnalyzeInputTextCaseStandard(t *testing.T) {
 	// Command case
 	// RequestTypeHelp case
-	userReq := NewUserTextRequest()
 	text := "Help"
-
-	// RequestTypeGetKotos case
-	userReq = NewUserTextRequest()
-	text = "GetKotos"
-	if err := userReq.AnalyzeInputText(text); err != nil {
-		t.Fatal("There shoud not be error", " Got error: ", err, "input text: ", text)
-	}
-	if userReq.Type != "GetKotos" {
-		t.Fatal("The request type is not correct, input text: ", text)
-	}
-	if userReq.VariableKeyword != "" {
-		t.Fatal("The keyword is not correct, input text: ", text)
-	}
-	// RequestTypeAddKoto case
-	userReq = NewUserTextRequest()
-	text = "AddKoto training"
-	if err := userReq.AnalyzeInputText(text); err != nil {
-		t.Fatal("There shoud not be error", " Got error: ", err, "input text: ", text)
-	}
-	if userReq.Type != "AddKoto" {
-		t.Fatal("The request type is not correct, input text: ", text)
-	}
-	if userReq.VariableKeyword != "training" {
-		t.Fatal("The keyword is not correct, input text: ", text)
-	}
-	// RequestTypeGetActivities case
-	userReq = NewUserTextRequest()
-	text = "GetActivities"
-	if err := userReq.AnalyzeInputText(text); err != nil {
-		t.Fatal("There shoud not be error", " Got error: ", err, "input text: ", text)
-	}
-	if userReq.Type != "GetActivities" {
-		t.Fatal("The request type is not correct, input text: ", text)
-	}
-	if userReq.VariableKeyword != "" {
-		t.Fatal("The keyword is not correct, input text: ", text)
-	}
-	// RequestTypeGetActivities case 2
-	userReq = NewUserTextRequest()
-	text = "GetActivities training"
-	if err := userReq.AnalyzeInputText(text); err != nil {
-		t.Fatal("There shoud not be error", " Got error: ", err, "input text: ", text)
-	}
-	if userReq.Type != "GetActivities" {
-		t.Fatal("The request type is not correct, input text: ", text)
-	}
-	if userReq.VariableKeyword != "training" {
-		t.Fatal("The keyword is not correct, input text: ", text)
-	}
-	// RequestTypeAddActivity case
-	userReq = NewUserTextRequest()
-	text = "AddActivity training"
-	if err := userReq.AnalyzeInputText(text); err != nil {
-		t.Fatal("There shoud not be error", " Got error: ", err, "input text: ", text)
-	}
-	if userReq.Type != "AddActivity" {
-		t.Fatal("The request type is not correct, input text: ", text)
-	}
-	if userReq.VariableKeyword != "training" {
-		t.Fatal("The keyword is not correct, input text: ", text)
-	}
 
 	// Japanese case
 	// RequestTypeHelp case
