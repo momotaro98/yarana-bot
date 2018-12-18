@@ -154,35 +154,34 @@ func (app *Yarana) replyText(replyToken, text string) error {
 
 func (app *Yarana) handleText(message *linebot.TextMessage, replyToken string, source *linebot.EventSource) (err error) {
 	// Analyze text message
-	userReq := NewUserTextRequest()
-	err = userReq.AnalyzeInputText(message.Text)
+	requestType, variableKeyword, err := AnalyzeInputText(message.Text)
 	if err != nil {
 		app.replyWithHelp(replyToken, "それじゃわからないわよ")
 		return nil // not regard invalid input as error
 	}
-	switch userReq.Type {
+	switch requestType {
 	case RequestTypeHelp:
-		err = app.processHelp(replyToken, source.UserID, userReq.VariableKeyword)
+		err = app.processHelp(replyToken, source.UserID, variableKeyword)
 		if err != nil {
 			return err
 		}
-	case RequstTypeGetKotos:
-		err = app.processGetKotos(replyToken, source.UserID, userReq.VariableKeyword)
+	case RequestTypeGetKotos:
+		err = app.processGetKotos(replyToken, source.UserID, variableKeyword)
 		if err != nil {
 			return err
 		}
-	case RequstTypeAddKoto:
-		err = app.processAddKoto(replyToken, source.UserID, userReq.VariableKeyword)
+	case RequestTypeAddKoto:
+		err = app.processAddKoto(replyToken, source.UserID, variableKeyword)
 		if err != nil {
 			return err
 		}
-	case RequstTypeGetActivities:
-		err = app.processGetActivities(replyToken, source.UserID, userReq.VariableKeyword)
+	case RequestTypeGetActivities:
+		err = app.processGetActivities(replyToken, source.UserID, variableKeyword)
 		if err != nil {
 			return err
 		}
-	case RequstTypeAddActivity:
-		err = app.processAddActivity(replyToken, source.UserID, userReq.VariableKeyword)
+	case RequestTypeAddActivity:
+		err = app.processAddActivity(replyToken, source.UserID, variableKeyword)
 		if err != nil {
 			return err
 		}
