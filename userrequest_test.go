@@ -4,7 +4,7 @@ import (
 		"testing"
 	)
 
-func TestAnalyzeInputText_SingleCommand_HelpType(t *testing.T) {
+func TestAnalyzeInputText_SingleHelpCommand_Valid(t *testing.T) {
 	// Arrange
 	text := "Help"
 	// Act
@@ -21,7 +21,7 @@ func TestAnalyzeInputText_SingleCommand_HelpType(t *testing.T) {
 	}
 }
 
-func TestAnalyzeInputText_SingleCommand_GetKotosType(t *testing.T) {
+func TestAnalyzeInputText_SingleGetKotosCommand_Valid(t *testing.T) {
 	// Arrange
 	text := "GetKotos"
 	// Act
@@ -38,7 +38,7 @@ func TestAnalyzeInputText_SingleCommand_GetKotosType(t *testing.T) {
 	}
 }
 
-func TestAnalyzeInputText_CommandWithKeyword_AddKotoType(t *testing.T) {
+func TestAnalyzeInputText_AddKotoCommandWithKeyword_Valid(t *testing.T) {
 	// Arrange
 	text := "AddKoto training"
 	// Act
@@ -55,7 +55,7 @@ func TestAnalyzeInputText_CommandWithKeyword_AddKotoType(t *testing.T) {
 	}
 }
 
-func TestAnalyzeInputText_SingleCommand_GetActivitiesType(t *testing.T) {
+func TestAnalyzeInputText_SingleGetActivitiesCommand_Valid(t *testing.T) {
 	// Arrange
 	text := "GetActivities"
 	// Act
@@ -72,7 +72,7 @@ func TestAnalyzeInputText_SingleCommand_GetActivitiesType(t *testing.T) {
 	}
 }
 
-func TestAnalyzeInputText_CommandWithKeyword_GetActivitiesAndKeyword(t *testing.T) {
+func TestAnalyzeInputText_GetActivitiesCommandWithKeyword_Valid(t *testing.T) {
 	// Arrange
 	text := "GetActivities training"
 	// Act
@@ -89,7 +89,7 @@ func TestAnalyzeInputText_CommandWithKeyword_GetActivitiesAndKeyword(t *testing.
 	}
 }
 
-func TestAnalyzeInputText_CommandWithKeyword_AddActivityType(t *testing.T) {
+func TestAnalyzeInputText_AddActivityCommandWithKeyword_Valid(t *testing.T) {
 	// Arrange
 	text := "AddActivity training"
 	// Act
@@ -106,265 +106,348 @@ func TestAnalyzeInputText_CommandWithKeyword_AddActivityType(t *testing.T) {
 	}
 }
 
-/*
-func TestAnalyzeInputTextCaseStandard(t *testing.T) {
-	// Command case
-	// RequestTypeHelp case
-	text := "Help"
+func TestAnalyzeInputText_InvalidText_Error(t *testing.T) {
+	// Arrange
+	text := "abcdefghijklmnopqrstuvwxyz"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	if err == nil {
+		t.Fatal("There should be error.", "input text:", text)
+	}
+	if reqType != "" {
+		t.Fatal("The request type should be empty, input text:", text, "RequestType:", reqType)
+	}
+	if keyword != "" {
+		t.Fatal("The keyword should be empty, input text:", text, "keyword:", keyword)
+	}
+}
 
-	// Japanese case
-	// RequestTypeHelp case
-	userReq = NewUserTextRequest()
-	text = "使い方"
-	if err := userReq.AnalyzeInputText(text); err != nil {
-		t.Fatal("There shoud not be error", " Got error: ", err, "input text: ", text)
+func TestAnalyzeInputText_EmptyStringText_Error(t *testing.T) {
+	// Arrange
+	text := ""
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	if err == nil {
+		t.Fatal("There should be error.", "input text:", text)
 	}
-	if userReq.Type != "Help" {
+	if reqType != "" {
+		t.Fatal("The request type should be empty, input text:", text, "RequestType:", reqType)
+	}
+	if keyword != "" {
+		t.Fatal("The keyword should be empty, input text:", text, "keyword:", keyword)
+	}
+}
+
+func TestAnalyzeInputText_None2ndWordAfterAddKoto_Error(t *testing.T) {
+	// Arrange
+	text := "AddKoto "
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	if err == nil {
+		t.Fatal("There should be error.", "input text:", text)
+	}
+	if reqType != "" {
+		t.Fatal("The request type should be empty, input text:", text, "RequestType:", reqType)
+	}
+	if keyword != "" {
+		t.Fatal("The keyword should be empty, input text:", text, "keyword:", keyword)
+	}
+}
+
+func TestAnalyzeInputText_None2ndWordAferAddActivity_Error(t *testing.T) {
+	// Arrange
+	text := "AddActivity "
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	if err == nil {
+		t.Fatal("There should be error.", "input text:", text)
+	}
+	if reqType != "" {
+		t.Fatal("The request type should be empty, input text:", text, "RequestType:", reqType)
+	}
+	if keyword != "" {
+		t.Fatal("The keyword should be empty, input text:", text, "keyword:", keyword)
+	}
+}
+
+func TestAnalyzeInputText_JapaneseTextHelp_Valid(t *testing.T) {
+	// Arrange
+	text := "使い方"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	if err != nil {
+		t.Fatal("There should not be error", " Got error: ", err, "input text: ", text)
+	}
+	if reqType != RequestTypeHelp {
 		t.Fatal("The request type is not correct, input text: ", text)
 	}
-	if userReq.VariableKeyword != "" {
-		t.Fatal("The keyword is not correct, input text: ", text)
-	}
-	// RequestTypeHelp case
-	userReq = NewUserTextRequest()
-	text = "使い方教えて"
-	if err := userReq.AnalyzeInputText(text); err != nil {
-		t.Fatal("There shoud not be error", " Got error: ", err, "input text: ", text)
-	}
-	if userReq.Type != "Help" {
-		t.Fatal("The request type is not correct, input text: ", text)
-	}
-	if userReq.VariableKeyword != "" {
-		t.Fatal("The keyword is not correct, input text: ", text)
-	}
-	// RequestTypeHelp case
-	userReq = NewUserTextRequest()
-	text = "使い方を教えて"
-	if err := userReq.AnalyzeInputText(text); err != nil {
-		t.Fatal("There shoud not be error", " Got error: ", err, "input text: ", text)
-	}
-	if userReq.Type != "Help" {
-		t.Fatal("The request type is not correct, input text: ", text)
-	}
-	if userReq.VariableKeyword != "" {
-		t.Fatal("The keyword is not correct, input text: ", text)
-	}
-	// RequestTypeGetKotos case
-	userReq = NewUserTextRequest()
-	text = "やること"
-	if err := userReq.AnalyzeInputText(text); err != nil {
-		t.Fatal("There shoud not be error", " Got error: ", err, "input text: ", text)
-	}
-	if userReq.Type != "GetKotos" {
-		t.Fatal("The request type is not correct, input text: ", text)
-	}
-	if userReq.VariableKeyword != "" {
-		t.Fatal("The keyword is not correct, input text: ", text)
-	}
-	// RequestTypeGetKotos case
-	userReq = NewUserTextRequest()
-	text = "やること教えて"
-	if err := userReq.AnalyzeInputText(text); err != nil {
-		t.Fatal("There shoud not be error", " Got error: ", err, "input text: ", text)
-	}
-	if userReq.Type != "GetKotos" {
-		t.Fatal("The request type is not correct, input text: ", text)
-	}
-	if userReq.VariableKeyword != "" {
-		t.Fatal("The keyword is not correct, input text: ", text)
-	}
-	// RequestTypeGetKotos case
-	userReq = NewUserTextRequest()
-	text = "やることを教えて"
-	if err := userReq.AnalyzeInputText(text); err != nil {
-		t.Fatal("There shoud not be error", " Got error: ", err, "input text: ", text)
-	}
-	if userReq.Type != "GetKotos" {
-		t.Fatal("The request type is not correct, input text: ", text)
-	}
-	if userReq.VariableKeyword != "" {
-		t.Fatal("The keyword is not correct, input text: ", text)
-	}
-	// RequestTypeAddKoto case
-	userReq = NewUserTextRequest()
-	text = "空手を登録して"
-	if err := userReq.AnalyzeInputText(text); err != nil {
-		t.Fatal("There shoud not be error", " Got error: ", err, "input text: ", text)
-	}
-	if userReq.Type != "AddKoto" {
-		t.Fatal("The request type is not correct, input text: ", text)
-	}
-	if userReq.VariableKeyword != "空手" {
-		t.Fatal("The keyword is not correct, input text: ", text)
-	}
-	// RequestTypeAddKoto case 2
-	userReq = NewUserTextRequest()
-	text = "英語の勉強を登録して"
-	if err := userReq.AnalyzeInputText(text); err != nil {
-		t.Fatal("There shoud not be error", " Got error: ", err, "input text: ", text)
-	}
-	if userReq.Type != "AddKoto" {
-		t.Fatal("The request type is not correct, input text: ", text)
-	}
-	if userReq.VariableKeyword != "英語の勉強" {
-		t.Fatal("The keyword is not correct, input text: ", text)
-	}
-	// RequestTypeGetActivities case
-	userReq = NewUserTextRequest()
-	text = "履歴"
-	if err := userReq.AnalyzeInputText(text); err != nil {
-		t.Fatal("There shoud not be error", " Got error: ", err, "input text: ", text)
-	}
-	if userReq.Type != "GetActivities" {
-		t.Fatal("The request type is not correct, input text: ", text)
-	}
-	if userReq.VariableKeyword != "" {
-		t.Fatal("The keyword is not correct, input text: ", text)
-	}
-	// RequestTypeGetActivities case
-	userReq = NewUserTextRequest()
-	text = "履歴を教えて"
-	if err := userReq.AnalyzeInputText(text); err != nil {
-		t.Fatal("There shoud not be error", " Got error: ", err, "input text: ", text)
-	}
-	if userReq.Type != "GetActivities" {
-		t.Fatal("The request type is not correct, input text: ", text)
-	}
-	if userReq.VariableKeyword != "" {
-		t.Fatal("The keyword is not correct, input text: ", text)
-	}
-	// RequestTypeGetActivities case 2
-	userReq = NewUserTextRequest()
-	text = "英語の勉強の履歴"
-	if err := userReq.AnalyzeInputText(text); err != nil {
-		t.Fatal("There shoud not be error", " Got error: ", err, "input text: ", text)
-	}
-	if userReq.Type != "GetActivities" {
-		t.Fatal("The request type is not correct, input text: ", text)
-	}
-	if userReq.VariableKeyword != "英語の勉強" {
-		t.Fatal("The keyword is not correct, input text: ", text)
-	}
-	// RequestTypeGetActivities case 2
-	userReq = NewUserTextRequest()
-	text = "英語の勉強の履歴を教えて"
-	if err := userReq.AnalyzeInputText(text); err != nil {
-		t.Fatal("There shoud not be error", " Got error: ", err, "input text: ", text)
-	}
-	if userReq.Type != "GetActivities" {
-		t.Fatal("The request type is not correct, input text: ", text)
-	}
-	if userReq.VariableKeyword != "英語の勉強" {
-		t.Fatal("The keyword is not correct, input text: ", text)
-	}
-	// RequestTypeAddActivity case
-	userReq = NewUserTextRequest()
-	text = "空手やったよ"
-	if err := userReq.AnalyzeInputText(text); err != nil {
-		t.Fatal("There shoud not be error", " Got error: ", err, "input text: ", text)
-	}
-	if userReq.Type != "AddActivity" {
-		t.Fatal("The request type is not correct, input text: ", text)
-	}
-	if userReq.VariableKeyword != "空手" {
-		t.Fatal("The keyword is not correct, input text: ", text)
-	}
-	// RequestTypeAddActivity case 2
-	userReq = NewUserTextRequest()
-	text = "英語の勉強やった"
-	if err := userReq.AnalyzeInputText(text); err != nil {
-		t.Fatal("There shoud not be error", " Got error: ", err, "input text: ", text)
-	}
-	if userReq.Type != "AddActivity" {
-		t.Fatal("The request type is not correct, input text: ", text)
-	}
-	if userReq.VariableKeyword != "英語の勉強" {
-		t.Fatal("The keyword is not correct, input text: ", text)
-	}
-	// RequestTypeAddActivity case 3
-	userReq = NewUserTextRequest()
-	text = "空手をやったよ"
-	if err := userReq.AnalyzeInputText(text); err != nil {
-		t.Fatal("There shoud not be error", " Got error: ", err, "input text: ", text)
-	}
-	if userReq.Type != "AddActivity" {
-		t.Fatal("The request type is not correct, input text: ", text)
-	}
-	if userReq.VariableKeyword != "空手" {
-		t.Fatal("The keyword is not correct, input text: ", text)
-	}
-	// RequestTypeAddActivity case 4
-	userReq = NewUserTextRequest()
-	text = "英語の勉強をやった"
-	if err := userReq.AnalyzeInputText(text); err != nil {
-		t.Fatal("There shoud not be error", " Got error: ", err, "input text: ", text)
-	}
-	if userReq.Type != "AddActivity" {
-		t.Fatal("The request type is not correct, input text: ", text)
-	}
-	if userReq.VariableKeyword != "英語の勉強" {
+	if keyword != "" {
 		t.Fatal("The keyword is not correct, input text: ", text)
 	}
 }
 
+func TestAnalyzeInputText_JapaneseTextHelp2_Valid(t *testing.T) {
+	// Arrange
+	text := "使い方教えて"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	if err != nil {
+		t.Fatal("There should not be error", " Got error: ", err, "input text: ", text)
+	}
+	if reqType != RequestTypeHelp {
+		t.Fatal("The request type is not correct, input text: ", text)
+	}
+	if keyword != "" {
+		t.Fatal("The keyword is not correct, input text: ", text)
+	}
+}
+
+func TestAnalyzeInputText_JapaneseTextHelp3_Valid(t *testing.T) {
+	// Arrange
+	text := "使い方を教えて"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	if err != nil {
+		t.Fatal("There should not be error", " Got error: ", err, "input text: ", text)
+	}
+	if reqType != RequestTypeHelp {
+		t.Fatal("The request type is not correct, input text: ", text)
+	}
+	if keyword != "" {
+		t.Fatal("The keyword is not correct, input text: ", text)
+	}
+}
+
+func TestAnalyzeInputText_JapaneseTextGetKotos_Valid(t *testing.T) {
+	// Arrange
+	text := "やること"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	if err != nil {
+		t.Fatal("There should not be error", " Got error: ", err, "input text: ", text)
+	}
+	if reqType != RequestTypeGetKotos {
+		t.Fatal("The request type is not correct, input text: ", text)
+	}
+	if keyword != "" {
+		t.Fatal("The keyword is not correct, input text: ", text)
+	}
+}
+
+func TestAnalyzeInputText_JapaneseTextGetKotos2_Valid(t *testing.T) {
+	// Arrange
+	text := "やること教えて"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	if err != nil {
+		t.Fatal("There should not be error", " Got error: ", err, "input text: ", text)
+	}
+	if reqType != RequestTypeGetKotos {
+		t.Fatal("The request type is not correct, input text: ", text)
+	}
+	if keyword != "" {
+		t.Fatal("The keyword is not correct, input text: ", text)
+	}
+}
+
+func TestAnalyzeInputText_JapaneseTextGetKotos3_Valid(t *testing.T) {
+	// Arrange
+	text := "やることを教えて"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	if err != nil {
+		t.Fatal("There should not be error", " Got error: ", err, "input text: ", text)
+	}
+	if reqType != RequestTypeGetKotos {
+		t.Fatal("The request type is not correct, input text: ", text)
+	}
+	if keyword != "" {
+		t.Fatal("The keyword is not correct, input text: ", text)
+	}
+}
+
+func TestAnalyzeInputText_JapaneseTextAddKotoWithKeyword1_Valid(t *testing.T) {
+	// Arrange
+	text := "空手を登録して"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	if err != nil {
+		t.Fatal("There should not be error", " Got error: ", err, "input text: ", text)
+	}
+	if reqType != RequestTypeAddKoto {
+		t.Fatal("The request type is not correct, input text: ", text)
+	}
+	if keyword != "空手" {
+		t.Fatal("The keyword is not correct, input text: ", text)
+	}
+}
+
+func TestAnalyzeInputText_JapaneseTextAddKotoWithKeyword2_Valid(t *testing.T) {
+	// Arrange
+	text := "英語の勉強を登録して"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	if err != nil {
+		t.Fatal("There should not be error", " Got error: ", err, "input text: ", text)
+	}
+	if reqType != RequestTypeAddKoto {
+		t.Fatal("The request type is not correct, input text: ", text)
+	}
+	if keyword != "英語の勉強" {
+		t.Fatal("The keyword is not correct, input text: ", text)
+	}
+}
+
+func TestAnalyzeInputText_JapaneseTextGetActivities1_Valid(t *testing.T) {
+	// Arrange
+	text := "履歴"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	if err != nil {
+		t.Fatal("There should not be error", " Got error: ", err, "input text: ", text)
+	}
+	if reqType != RequestTypeGetActivities {
+		t.Fatal("The request type is not correct, input text: ", text)
+	}
+	if keyword != "" {
+		t.Fatal("The keyword is not correct, input text: ", text)
+	}
+}
+
+func TestAnalyzeInputText_JapaneseTextGetActivities2_Valid(t *testing.T) {
+	// Arrange
+	text := "履歴を教えて"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	if err != nil {
+		t.Fatal("There should not be error", " Got error: ", err, "input text: ", text)
+	}
+	if reqType != RequestTypeGetActivities {
+		t.Fatal("The request type is not correct, input text: ", text)
+	}
+	if keyword != "" {
+		t.Fatal("The keyword is not correct, input text: ", text)
+	}
+}
+
+func TestAnalyzeInputText_JapaneseTextGetActivitiesWithKeyword_Valid(t *testing.T) {
+	// Arrange
+	text := "英語の勉強の履歴"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	if err != nil {
+		t.Fatal("There should not be error", " Got error: ", err, "input text: ", text)
+	}
+	if reqType != RequestTypeGetActivities {
+		t.Fatal("The request type is not correct, input text: ", text)
+	}
+	if keyword != "英語の勉強" {
+		t.Fatal("The keyword is not correct, input text: ", text)
+	}
+}
+
+func TestAnalyzeInputText_JapaneseTextGetActivitiesWithKeyword2_Valid(t *testing.T) {
+	// Arrange
+	text := "英語の勉強の履歴を教えて"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	if err != nil {
+		t.Fatal("There should not be error", " Got error: ", err, "input text: ", text)
+	}
+	if reqType != RequestTypeGetActivities {
+		t.Fatal("The request type is not correct, input text: ", text)
+	}
+	if keyword != "英語の勉強" {
+		t.Fatal("The keyword is not correct, input text: ", text)
+	}
+}
+
+func TestAnalyzeInputText_JapaneseTextAddActivityWithKeyword_Valid(t *testing.T) {
+	// Arrange
+	text := "空手やったよ"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	if err != nil {
+		t.Fatal("There should not be error", " Got error: ", err, "input text: ", text)
+	}
+	if reqType != RequestTypeAddActivity {
+		t.Fatal("The request type is not correct, input text: ", text)
+	}
+	if keyword != "空手" {
+		t.Fatal("The keyword is not correct, input text: ", text)
+	}
+}
+
+func TestAnalyzeInputText_JapaneseTextAddActivityWithKeyword2_Valid(t *testing.T) {
+	// Arrange
+	text := "英語の勉強やった"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	if err != nil {
+		t.Fatal("There should not be error", " Got error: ", err, "input text: ", text)
+	}
+	if reqType != RequestTypeAddActivity {
+		t.Fatal("The request type is not correct, input text: ", text)
+	}
+	if keyword != "英語の勉強" {
+		t.Fatal("The keyword is not correct, input text: ", text)
+	}
+}
+
+func TestAnalyzeInputText_JapaneseTextAddActivityWithKeyword3_Valid(t *testing.T) {
+	// Arrange
+	text := "空手をやったよ"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	if err != nil {
+		t.Fatal("There should not be error", " Got error: ", err, "input text: ", text)
+	}
+	if reqType != RequestTypeAddActivity {
+		t.Fatal("The request type is not correct, input text: ", text)
+	}
+	if keyword != "空手" {
+		t.Fatal("The keyword is not correct, input text: ", text)
+	}
+}
+
+func TestAnalyzeInputText_JapaneseTextAddActivityWithKeyword4_Valid(t *testing.T) {
+	// Arrange
+	text := "英語の勉強をやった"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	if err != nil {
+		t.Fatal("There should not be error", " Got error: ", err, "input text: ", text)
+	}
+	if reqType != RequestTypeAddActivity {
+		t.Fatal("The request type is not correct, input text: ", text)
+	}
+	if keyword != "英語の勉強" {
+		t.Fatal("The keyword is not correct, input text: ", text)
+	}
+}
+
+/*
 func TestAnalyzeInputTextCaseInvalid(t *testing.T) {
-	// Command case
-	// Invalid text
-	userReq := NewUserTextRequest()
-	text := "abcdefghijklmnopqrstuvwxyz"
-	if err := userReq.AnalyzeInputText(text); err == nil {
-		t.Fatal("There shoud be error.", "input text:", text)
-	} else if err.Error() != fmt.Sprintf("Can't analyze: %s", text) {
-		t.Fatal("Error message is not correct.", "Got error:", err)
-	}
-	if userReq.Type != "" {
-		t.Fatal("The request type should be empty, input text:", text, "user.Type:", userReq.Type)
-	}
-	if userReq.VariableKeyword != "" {
-		t.Fatal("The keyword should be empty, input text:", text, "user.VariableKeyword:", userReq.VariableKeyword)
-	}
-	// No text string case
-	userReq = NewUserTextRequest()
-	text = ""
-	if err := userReq.AnalyzeInputText(text); err == nil {
-		t.Fatal("There shoud be error.", "input text:", text)
-	} else if err.Error() != fmt.Sprintf("Can't analyze: %s", text) {
-		t.Fatal("Error message is not correct.", "Got error:", err)
-	}
-	if userReq.Type != "" {
-		t.Fatal("The request type should be empty, input text:", text, "user.Type:", userReq.Type)
-	}
-	if userReq.VariableKeyword != "" {
-		t.Fatal("The keyword should be empty, input text:", text, "user.VariableKeyword:", userReq.VariableKeyword)
-	}
-	// No 2nd word after AddKoto
-	userReq = NewUserTextRequest()
-	text = "AddKoto "
-	if err := userReq.AnalyzeInputText(text); err == nil {
-		t.Fatal("There shoud be error.", "input text:", text)
-	} else if err.Error() != fmt.Sprintf("Can't analyze: %s", text) {
-		t.Fatal("Error message is not correct.", "Got error:", err)
-	}
-	if userReq.Type != "" {
-		t.Fatal("The request type should be empty, input text:", text, "user.Type:", userReq.Type)
-	}
-	if userReq.VariableKeyword != "" {
-		t.Fatal("The keyword should be empty, input text:", text, "user.VariableKeyword:", userReq.VariableKeyword)
-	}
-	// No 2nd word after AddActivity
-	userReq = NewUserTextRequest()
-	text = "AddActivity "
-	if err := userReq.AnalyzeInputText(text); err == nil {
-		t.Fatal("There shoud be error.", "input text:", text)
-	} else if err.Error() != fmt.Sprintf("Can't analyze: %s", text) {
-		t.Fatal("Error message is not correct.", "Got error:", err)
-	}
-	if userReq.Type != "" {
-		t.Fatal("The request type should be empty, input text:", text, "user.Type:", userReq.Type)
-	}
-	if userReq.VariableKeyword != "" {
-		t.Fatal("The keyword should be empty, input text:", text, "user.VariableKeyword:", userReq.VariableKeyword)
-	}
 
 	// Japanese case
 	// invalid case
