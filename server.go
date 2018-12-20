@@ -359,7 +359,7 @@ func (app *Yarana) processAddActivity(replyToken string, userID string, keyword 
 	}
 	if len(kotos) == 0 || kotos == nil {
 		app.replyWithHelp(replyToken, "やることが登録されてないわよ")
-		return fmt.Errorf("no Koto data in the user")
+		return fmt.Errorf("no koto data in the user")
 	}
 
 	// Get specified Koto ID

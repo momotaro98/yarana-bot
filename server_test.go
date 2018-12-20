@@ -116,7 +116,7 @@ func TestProcessAddKotosStandard(t *testing.T) {
 	// duplicate Koto title case
 	err = app.processAddKoto("replyToken", "userID", "TestTitle")
 	if err != nil {
-		if err.Error() != "User was going to add duplicate Koto." {
+		if err.Error() != "user was going to add duplicate koto" {
 			t.Fatal("err should be yarana-bot duplicate Koto error.", " Got error: ", err)
 		}
 	} else {
@@ -167,7 +167,7 @@ func TestProcessAddActivityStandard(t *testing.T) {
 	NonExistTestTitle := "NonExistTestTitle"
 	err = app.processAddActivity("replyToken", "userID", NonExistTestTitle)
 	if err != nil {
-		if err.Error() != fmt.Sprintf("Not found \"%s\" in the user", NonExistTestTitle) {
+		if err.Error() != fmt.Sprintf("not found \"%s\" in the user", NonExistTestTitle) {
 			t.Fatal("err should be yarana-bot non-exist Koto error.", " Got error: ", err)
 		}
 	} else {
@@ -220,8 +220,8 @@ func TestProcessGetKotosNoKoto(t *testing.T) {
 
 	err := app.processGetKotos("replyToken", "userID", "TestTitle")
 	if err != nil {
-		if err.Error() != "No Koto data in the user" {
-			t.Fatal("err should be \"No koto data in the user\"", " Got error: ", err)
+		if err.Error() != "no koto data in the user" {
+			t.Fatal("err should be \"no koto data in the user\"", " Got error: ", err)
 		}
 	} else {
 		t.Fatal("err should have error")
@@ -259,8 +259,8 @@ func TestProcessGetActivitiesNoKoto(t *testing.T) {
 
 	err := app.processGetActivities("replyToken", "userID", "TestTitle")
 	if err != nil {
-		if err.Error() != "No Koto data in the user" {
-			t.Fatal("err should be \"No koto data in the user\"", " Got error: ", err)
+		if err.Error() != "no koto data in the user" {
+			t.Fatal("err should be \"no koto data in the user\"", " Got error: ", err)
 		}
 	} else {
 		t.Fatal("err should have error")
@@ -278,8 +278,8 @@ func TestProcessAddActivityNoKoto(t *testing.T) {
 
 	err := app.processAddActivity("replyToken", "userID", "TestTitle")
 	if err != nil {
-		if err.Error() != "No Koto data in the user" {
-			t.Fatal("err should be \"No koto data in the user\"", " Got error: ", err)
+		if err.Error() != "no koto data in the user" {
+			t.Fatal("err should be \"no koto data in the user\"", " Got error: ", err)
 		}
 	} else {
 		t.Fatal("err should have error")
@@ -346,7 +346,7 @@ func TestProcessGetActivitiesNoActivity(t *testing.T) {
 
 	err := app.processGetActivities("replyToken", "userID", "TestTitle")
 	if err != nil {
-		if err.Error() != "No activity data in the user" {
+		if err.Error() != "no activity data in the user" {
 			t.Fatal("err should be \"No activity data in the user\"", " Got error: ", err)
 		}
 	} else {
