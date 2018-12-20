@@ -1,8 +1,21 @@
 package main
 
 import (
-		"testing"
-	)
+	"testing"
+)
+
+// assertForErrorExpectedCases is common assertion method for cases which are expected to get error
+func assertForErrorExpectedCases(t *testing.T, err error, reqType RequestType, keyword string, inputText string) {
+	if err == nil {
+		t.Fatal("There should be error.", "input text:", inputText)
+	}
+	if reqType != "" {
+		t.Fatal("The request type should be empty, input text:", inputText, "reqType:", reqType)
+	}
+	if keyword != "" {
+		t.Fatal("The keyword should be empty, input text:", inputText, "keyword:", keyword)
+	}
+}
 
 func TestAnalyzeInputText_SingleHelpCommand_Valid(t *testing.T) {
 	// Arrange
@@ -112,15 +125,7 @@ func TestAnalyzeInputText_InvalidText_Error(t *testing.T) {
 	// Act
 	reqType, keyword, err := AnalyzeInputText(text)
 	// Assert
-	if err == nil {
-		t.Fatal("There should be error.", "input text:", text)
-	}
-	if reqType != "" {
-		t.Fatal("The request type should be empty, input text:", text, "RequestType:", reqType)
-	}
-	if keyword != "" {
-		t.Fatal("The keyword should be empty, input text:", text, "keyword:", keyword)
-	}
+	assertForErrorExpectedCases(t, err, reqType, keyword, text)
 }
 
 func TestAnalyzeInputText_EmptyStringText_Error(t *testing.T) {
@@ -129,15 +134,7 @@ func TestAnalyzeInputText_EmptyStringText_Error(t *testing.T) {
 	// Act
 	reqType, keyword, err := AnalyzeInputText(text)
 	// Assert
-	if err == nil {
-		t.Fatal("There should be error.", "input text:", text)
-	}
-	if reqType != "" {
-		t.Fatal("The request type should be empty, input text:", text, "RequestType:", reqType)
-	}
-	if keyword != "" {
-		t.Fatal("The keyword should be empty, input text:", text, "keyword:", keyword)
-	}
+	assertForErrorExpectedCases(t, err, reqType, keyword, text)
 }
 
 func TestAnalyzeInputText_None2ndWordAfterAddKoto_Error(t *testing.T) {
@@ -146,15 +143,7 @@ func TestAnalyzeInputText_None2ndWordAfterAddKoto_Error(t *testing.T) {
 	// Act
 	reqType, keyword, err := AnalyzeInputText(text)
 	// Assert
-	if err == nil {
-		t.Fatal("There should be error.", "input text:", text)
-	}
-	if reqType != "" {
-		t.Fatal("The request type should be empty, input text:", text, "RequestType:", reqType)
-	}
-	if keyword != "" {
-		t.Fatal("The keyword should be empty, input text:", text, "keyword:", keyword)
-	}
+	assertForErrorExpectedCases(t, err, reqType, keyword, text)
 }
 
 func TestAnalyzeInputText_None2ndWordAferAddActivity_Error(t *testing.T) {
@@ -163,15 +152,7 @@ func TestAnalyzeInputText_None2ndWordAferAddActivity_Error(t *testing.T) {
 	// Act
 	reqType, keyword, err := AnalyzeInputText(text)
 	// Assert
-	if err == nil {
-		t.Fatal("There should be error.", "input text:", text)
-	}
-	if reqType != "" {
-		t.Fatal("The request type should be empty, input text:", text, "RequestType:", reqType)
-	}
-	if keyword != "" {
-		t.Fatal("The keyword should be empty, input text:", text, "keyword:", keyword)
-	}
+	assertForErrorExpectedCases(t, err, reqType, keyword, text)
 }
 
 func TestAnalyzeInputText_JapaneseTextHelp_Valid(t *testing.T) {
@@ -446,219 +427,119 @@ func TestAnalyzeInputText_JapaneseTextAddActivityWithKeyword4_Valid(t *testing.T
 	}
 }
 
-/*
-func TestAnalyzeInputTextCaseInvalid(t *testing.T) {
-
-	// Japanese case
-	// invalid case
-	userReq = NewUserTextRequest()
-	text = "使い方を教えてよ"
-	if err := userReq.AnalyzeInputText(text); err == nil {
-		t.Fatal("There shoud be error.", "input text:", text)
-	} else if err.Error() != fmt.Sprintf("Can't analyze: %s", text) {
-		t.Fatal("Error message is not correct.", "Got error:", err)
-	}
-	if userReq.Type != "" {
-		t.Fatal("The request type should be empty, input text:", text, "user.Type:", userReq.Type)
-	}
-	if userReq.VariableKeyword != "" {
-		t.Fatal("The keyword should be empty, input text:", text, "user.VariableKeyword:", userReq.VariableKeyword)
-	}
-	// invalid case
-	userReq = NewUserTextRequest()
-	text = "やること教えてよ"
-	if err := userReq.AnalyzeInputText(text); err == nil {
-		t.Fatal("There shoud be error.", "input text:", text)
-	} else if err.Error() != fmt.Sprintf("Can't analyze: %s", text) {
-		t.Fatal("Error message is not correct.", "Got error:", err)
-	}
-	if userReq.Type != "" {
-		t.Fatal("The request type should be empty, input text:", text, "user.Type:", userReq.Type)
-	}
-	if userReq.VariableKeyword != "" {
-		t.Fatal("The keyword should be empty, input text:", text, "user.VariableKeyword:", userReq.VariableKeyword)
-	}
-	// Invalid text
-	userReq = NewUserTextRequest()
-	text = "空手を登録してよ"
-	if err := userReq.AnalyzeInputText(text); err == nil {
-		t.Fatal("There shoud be error.", "input text:", text)
-	} else if err.Error() != fmt.Sprintf("Can't analyze: %s", text) {
-		t.Fatal("Error message is not correct.", "Got error:", err)
-	}
-	if userReq.Type != "" {
-		t.Fatal("The request type should be empty, input text:", text, "user.Type:", userReq.Type)
-	}
-	if userReq.VariableKeyword != "" {
-		t.Fatal("The keyword should be empty, input text:", text, "user.VariableKeyword:", userReq.VariableKeyword)
-	}
-	// empty keyword text
-	userReq = NewUserTextRequest()
-	text = "を登録して"
-	if err := userReq.AnalyzeInputText(text); err == nil {
-		t.Fatal("There shoud be error.", "input text:", text)
-	} else if err.Error() != fmt.Sprintf("Can't analyze: %s", text) {
-		t.Fatal("Error message is not correct.", "Got error:", err)
-	}
-	if userReq.Type != "" {
-		t.Fatal("The request type should be empty, input text:", text, "user.Type:", userReq.Type)
-	}
-	if userReq.VariableKeyword != "" {
-		t.Fatal("The keyword should be empty, input text:", text, "user.VariableKeyword:", userReq.VariableKeyword)
-	}
-	// invalid
-	userReq = NewUserTextRequest()
-	text = "履歴を教えてよ"
-	if err := userReq.AnalyzeInputText(text); err == nil {
-		t.Fatal("There shoud be error.", "input text:", text)
-	} else if err.Error() != fmt.Sprintf("Can't analyze: %s", text) {
-		t.Fatal("Error message is not correct.", "Got error:", err)
-	}
-	if userReq.Type != "" {
-		t.Fatal("The request type should be empty, input text:", text, "user.Type:", userReq.Type)
-	}
-	if userReq.VariableKeyword != "" {
-		t.Fatal("The keyword should be empty, input text:", text, "user.VariableKeyword:", userReq.VariableKeyword)
-	}
-	// Invalid text
-	userReq = NewUserTextRequest()
-	text = "空手履歴を教えて"
-	if err := userReq.AnalyzeInputText(text); err == nil {
-		t.Fatal("There shoud be error.", "input text:", text)
-	} else if err.Error() != fmt.Sprintf("Can't analyze: %s", text) {
-		t.Fatal("Error message is not correct.", "Got error:", err)
-	}
-	if userReq.Type != "" {
-		t.Fatal("The request type should be empty, input text:", text, "user.Type:", userReq.Type)
-	}
-	if userReq.VariableKeyword != "" {
-		t.Fatal("The keyword should be empty, input text:", text, "user.VariableKeyword:", userReq.VariableKeyword)
-	}
-	// empty keyword
-	userReq = NewUserTextRequest()
-	text = "の履歴"
-	if err := userReq.AnalyzeInputText(text); err == nil {
-		t.Fatal("There shoud be error.", "input text:", text)
-	} else if err.Error() != fmt.Sprintf("Can't analyze: %s", text) {
-		t.Fatal("Error message is not correct.", "Got error:", err)
-	}
-	if userReq.Type != "" {
-		t.Fatal("The request type should be empty, input text:", text, "user.Type:", userReq.Type)
-	}
-	if userReq.VariableKeyword != "" {
-		t.Fatal("The keyword should be empty, input text:", text, "user.VariableKeyword:", userReq.VariableKeyword)
-	}
-	// empty keyword
-	userReq = NewUserTextRequest()
-	text = "の履歴を教えて"
-	if err := userReq.AnalyzeInputText(text); err == nil {
-		t.Fatal("There shoud be error.", "input text:", text)
-	} else if err.Error() != fmt.Sprintf("Can't analyze: %s", text) {
-		t.Fatal("Error message is not correct.", "Got error:", err)
-	}
-	if userReq.Type != "" {
-		t.Fatal("The request type should be empty, input text:", text, "user.Type:", userReq.Type)
-	}
-	if userReq.VariableKeyword != "" {
-		t.Fatal("The keyword should be empty, input text:", text, "user.VariableKeyword:", userReq.VariableKeyword)
-	}
-	// invalid keyword text
-	userReq = NewUserTextRequest()
-	text = "英語の勉強やってないよ"
-	if err := userReq.AnalyzeInputText(text); err == nil {
-		t.Fatal("There shoud be error.", "input text:", text)
-	} else if err.Error() != fmt.Sprintf("Can't analyze: %s", text) {
-		t.Fatal("Error message is not correct.", "Got error:", err)
-	}
-	if userReq.Type != "" {
-		t.Fatal("The request type should be empty, input text:", text, "user.Type:", userReq.Type)
-	}
-	if userReq.VariableKeyword != "" {
-		t.Fatal("The keyword should be empty, input text:", text, "user.VariableKeyword:", userReq.VariableKeyword)
-	}
-	// invalid keyword text
-	userReq = NewUserTextRequest()
-	text = "英語の勉強やったよー"
-	if err := userReq.AnalyzeInputText(text); err == nil {
-		t.Fatal("There shoud be error.", "input text:", text)
-	} else if err.Error() != fmt.Sprintf("Can't analyze: %s", text) {
-		t.Fatal("Error message is not correct.", "Got error:", err)
-	}
-	if userReq.Type != "" {
-		t.Fatal("The request type should be empty, input text:", text, "user.Type:", userReq.Type)
-	}
-	if userReq.VariableKeyword != "" {
-		t.Fatal("The keyword should be empty, input text:", text, "user.VariableKeyword:", userReq.VariableKeyword)
-	}
-	// invalid keyword text
-	userReq = NewUserTextRequest()
-	text = "英語の勉強をやったよん"
-	if err := userReq.AnalyzeInputText(text); err == nil {
-		t.Fatal("There shoud be error.", "input text:", text)
-	} else if err.Error() != fmt.Sprintf("Can't analyze: %s", text) {
-		t.Fatal("Error message is not correct.", "Got error:", err)
-	}
-	if userReq.Type != "" {
-		t.Fatal("The request type should be empty, input text:", text, "user.Type:", userReq.Type)
-	}
-	if userReq.VariableKeyword != "" {
-		t.Fatal("The keyword should be empty, input text:", text, "user.VariableKeyword:", userReq.VariableKeyword)
-	}
-	// empty case
-	userReq = NewUserTextRequest()
-	text = "をやったよ"
-	if err := userReq.AnalyzeInputText(text); err == nil {
-		t.Fatal("There shoud be error.", "input text:", text)
-	} else if err.Error() != fmt.Sprintf("Can't analyze: %s", text) {
-		t.Fatal("Error message is not correct.", "Got error:", err)
-	}
-	if userReq.Type != "" {
-		t.Fatal("The request type should be empty, input text:", text, "user.Type:", userReq.Type)
-	}
-	if userReq.VariableKeyword != "" {
-		t.Fatal("The keyword should be empty, input text:", text, "user.VariableKeyword:", userReq.VariableKeyword)
-	}
-	// empty case
-	userReq = NewUserTextRequest()
-	text = "やったよ"
-	if err := userReq.AnalyzeInputText(text); err == nil {
-		t.Fatal("There shoud be error.", "input text:", text)
-	} else if err.Error() != fmt.Sprintf("Can't analyze: %s", text) {
-		t.Fatal("Error message is not correct.", "Got error:", err)
-	}
-	if userReq.Type != "" {
-		t.Fatal("The request type should be empty, input text:", text, "user.Type:", userReq.Type)
-	}
-	if userReq.VariableKeyword != "" {
-		t.Fatal("The keyword should be empty, input text:", text, "user.VariableKeyword:", userReq.VariableKeyword)
-	}
-	// empty case
-	userReq = NewUserTextRequest()
-	text = "をやった"
-	if err := userReq.AnalyzeInputText(text); err == nil {
-		t.Fatal("There shoud be error.", "input text:", text)
-	} else if err.Error() != fmt.Sprintf("Can't analyze: %s", text) {
-		t.Fatal("Error message is not correct.", "Got error:", err)
-	}
-	if userReq.Type != "" {
-		t.Fatal("The request type should be empty, input text:", text, "user.Type:", userReq.Type)
-	}
-	if userReq.VariableKeyword != "" {
-		t.Fatal("The keyword should be empty, input text:", text, "user.VariableKeyword:", userReq.VariableKeyword)
-	}
-	// empty case
-	userReq = NewUserTextRequest()
-	text = "やった"
-	if err := userReq.AnalyzeInputText(text); err == nil {
-		t.Fatal("There shoud be error.", "input text:", text)
-	} else if err.Error() != fmt.Sprintf("Can't analyze: %s", text) {
-		t.Fatal("Error message is not correct.", "Got error:", err)
-	}
-	if userReq.Type != "" {
-		t.Fatal("The request type should be empty, input text:", text, "user.Type:", userReq.Type)
-	}
-	if userReq.VariableKeyword != "" {
-		t.Fatal("The keyword should be empty, input text:", text, "user.VariableKeyword:", userReq.VariableKeyword)
-	}
+func TestAnalyzeInputText_JapaneseTextWrongHelp1_Error(t *testing.T) {
+	// Arrange
+	text := "使い方を教えてよ"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	assertForErrorExpectedCases(t, err, reqType, keyword, text)
 }
-*/
+
+func TestAnalyzeInputText_JapaneseTextWrongGetKotos1_Error(t *testing.T) {
+	// Arrange
+	text := "やること教えてよ"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	assertForErrorExpectedCases(t, err, reqType, keyword, text)
+}
+
+func TestAnalyzeInputText_JapaneseTextWrongAddKoto1_Error(t *testing.T) {
+	// Arrange
+	text := "空手を登録してよ"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	assertForErrorExpectedCases(t, err, reqType, keyword, text)
+}
+
+func TestAnalyzeInputText_JapaneseTextAddKotoWithoutKeyword_Error(t *testing.T) {
+	// Arrange
+	text := "を登録して"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	assertForErrorExpectedCases(t, err, reqType, keyword, text)
+}
+
+func TestAnalyzeInputText_JapaneseTextWrongGetActivities1_Error(t *testing.T) {
+	// Arrange
+	text := "履歴を教えてよ"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	assertForErrorExpectedCases(t, err, reqType, keyword, text)
+}
+
+func TestAnalyzeInputText_JapaneseTextWrongGetActivities2_Error(t *testing.T) {
+	// Arrange
+	text := "空手履歴を教えて"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	assertForErrorExpectedCases(t, err, reqType, keyword, text)
+}
+
+func TestAnalyzeInputText_JapaneseTextGetActivitiesWithoutKeyword1_Error(t *testing.T) {
+	// Arrange
+	text := "の履歴"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	assertForErrorExpectedCases(t, err, reqType, keyword, text)
+}
+
+func TestAnalyzeInputText_JapaneseTextGetActivitiesWithoutKeyword2_Error(t *testing.T) {
+	// Arrange
+	text := "の履歴を教えて"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	assertForErrorExpectedCases(t, err, reqType, keyword, text)
+}
+
+func TestAnalyzeInputText_JapaneseTextWrongAddActivity1_Error(t *testing.T) {
+	// Arrange
+	text := "英語の勉強やってないよ"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	assertForErrorExpectedCases(t, err, reqType, keyword, text)
+}
+
+func TestAnalyzeInputText_JapaneseTextAddActivityWithoutKeyword1_Error(t *testing.T) {
+	// Arrange
+	text := "をやったよ"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	assertForErrorExpectedCases(t, err, reqType, keyword, text)
+}
+
+func TestAnalyzeInputText_JapaneseTextAddActivityWithoutKeyword2_Error(t *testing.T) {
+	// Arrange
+	text := "やったよ"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	assertForErrorExpectedCases(t, err, reqType, keyword, text)
+}
+
+func TestAnalyzeInputText_JapaneseTextAddActivityWithoutKeyword3_Error(t *testing.T) {
+	// Arrange
+	text := "をやった"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	assertForErrorExpectedCases(t, err, reqType, keyword, text)
+}
+
+func TestAnalyzeInputText_JapaneseTextAddActivityWithoutKeyword4_Error(t *testing.T) {
+	// Arrange
+	text := "やった"
+	// Act
+	reqType, keyword, err := AnalyzeInputText(text)
+	// Assert
+	assertForErrorExpectedCases(t, err, reqType, keyword, text)
+}
