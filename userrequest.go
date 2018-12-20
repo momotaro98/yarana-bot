@@ -66,9 +66,8 @@ func analyzeInputTextInCommand(text string) (RequestType, string, error) {
 			return "", "", fmt.Errorf("can't analyze: %s", text)
 		}
 		return RequestTypeAddActivity, words[1], nil
-	default:
-		return "", "", fmt.Errorf("can't analyze: %s", text)
 	}
+	
 	return "", "", fmt.Errorf("can't analyze: %s", text)
 }
 

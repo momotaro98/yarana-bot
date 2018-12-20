@@ -215,7 +215,7 @@ func (app *Yarana) processGetKotos(replyToken string, userID string, keyword str
 	}
 	if len(kotos) == 0 || kotos == nil {
 		app.replyWithHelp(replyToken, "やることが登録されてないわよ")
-		return fmt.Errorf("No Koto data in the user")
+		return fmt.Errorf("no koto data in the user")
 	}
 
 	// Make text to send
@@ -242,7 +242,7 @@ func (app *Yarana) processAddKoto(replyToken string, userID string, keyword stri
 	for _, koto := range kotos {
 		if koto.Title == keyword {
 			app.replyWithHelp(replyToken, fmt.Sprintf("%sはもう登録されてるわよ", keyword)) // TODO: Replace showHelp to showAllUsersやつこと
-			return fmt.Errorf("User was going to add duplicate Koto.")
+			return fmt.Errorf("user was going to add duplicate koto")
 		}
 	}
 
@@ -281,7 +281,7 @@ func (app *Yarana) processGetActivities(replyToken string, userID string, keywor
 	}
 	if len(kotos) == 0 || kotos == nil {
 		app.replyWithHelp(replyToken, "やることが登録されてないわよ")
-		return fmt.Errorf("No Koto data in the user")
+		return fmt.Errorf("no koto data in the user")
 	}
 
 	// Get specified Koto ID
@@ -338,7 +338,7 @@ func (app *Yarana) processGetActivities(replyToken string, userID string, keywor
 	}
 	if textToSend == "" { // "textToSend is empty" means the user has not activities
 		app.replyWithHelp(replyToken, "まだ1回もやってないじゃないの。やりなさいよ。")
-		return fmt.Errorf("No activity data in the user")
+		return fmt.Errorf("no activity data in the user")
 	}
 	// Reply to user
 	if _, err := app.bot.ReplyMessage(
@@ -359,7 +359,7 @@ func (app *Yarana) processAddActivity(replyToken string, userID string, keyword 
 	}
 	if len(kotos) == 0 || kotos == nil {
 		app.replyWithHelp(replyToken, "やることが登録されてないわよ")
-		return fmt.Errorf("No Koto data in the user")
+		return fmt.Errorf("no Koto data in the user")
 	}
 
 	// Get specified Koto ID
@@ -372,7 +372,7 @@ func (app *Yarana) processAddActivity(replyToken string, userID string, keyword 
 	// Stop process if koto.Title doesn't exist in the user's data
 	if specifiedKotoID == "" {
 		app.replyWithHelp(replyToken, fmt.Sprintf("%sは登録されてないわよ", keyword)) // TODO: Replace showHelp to showAllUsersやつこと
-		return fmt.Errorf("Not found \"%s\" in the user", keyword)
+		return fmt.Errorf("not found \"%s\" in the user", keyword)
 	}
 	// Make a new Activity object
 	activityToAdd, _ := NewActivityData("", specifiedKotoID, time.Now())
