@@ -131,7 +131,7 @@ func (app *Yarana) Callback(w http.ResponseWriter, r *http.Request) {
 			if data == "DATE" || data == "TIME" || data == "DATETIME" {
 				data += fmt.Sprintf("(%v)", *event.Postback.Params)
 			}
-			if err := app.replyText(event.ReplyToken, "Got postback: "+data); err != nil {
+			if err := app.replyStandard(event.ReplyToken, "Got postback: "+data); err != nil {
 				log.Print(err)
 			}
 		case linebot.EventTypeBeacon:
@@ -142,22 +142,15 @@ func (app *Yarana) Callback(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (app *Yarana) replyText(replyToken, text string) error {
-	if _, err := app.bot.ReplyMessage(
-		replyToken,
-		linebot.NewTextMessage(text),
-	).Do(); err != nil {
-		return err
-	}
-	return nil
-}
-
 func (app *Yarana) handleText(message *linebot.TextMessage, replyToken string, source *linebot.EventSource) (err error) {
 	// Analyze text message
 	requestType, variableKeyword, err := AnalyzeInputText(message.Text)
 	if err != nil {
-		app.replyWithHelp(replyToken, "それじゃわからないわよ")
-		return nil // not regard invalid input as error
+		err = app.processNoneType(replyToken, message.Text)
+		if err != nil {
+			return err
+		}
+		return nil
 	}
 	switch requestType {
 	case RequestTypeHelp:
@@ -197,10 +190,7 @@ func (app *Yarana) processHelp(replyToken string, userID string, keyword string)
 	// Make text to send
 	var textToSend string
 	textToSend = ReturnHelpText()
-	if _, err := app.bot.ReplyMessage(
-		replyToken,
-		linebot.NewTextMessage(strings.TrimSpace(textToSend)),
-	).Do(); err != nil {
+	if err := app.replyStandard(replyToken, textToSend); err != nil {
 		return err
 	}
 	return nil
@@ -223,10 +213,8 @@ func (app *Yarana) processGetKotos(replyToken string, userID string, keyword str
 	for _, koto := range kotos {
 		textToSend = textToSend + koto.Title + "\n"
 	}
-	if _, err := app.bot.ReplyMessage(
-		replyToken,
-		linebot.NewTextMessage(strings.TrimSpace(textToSend)),
-	).Do(); err != nil {
+	// Send message to user
+	if err := app.replyStandard(replyToken, textToSend); err != nil {
 		return err
 	}
 	return nil
@@ -263,10 +251,9 @@ func (app *Yarana) processAddKoto(replyToken string, userID string, keyword stri
 	// Make text to send
 	var textToSend string
 	textToSend = fmt.Sprintf("%sを新しく登録したわよ。ちゃんと続けなさいよね。", keyword)
-	if _, err := app.bot.ReplyMessage(
-		replyToken,
-		linebot.NewTextMessage(strings.TrimSpace(textToSend)),
-	).Do(); err != nil {
+
+	// Send message to user
+	if err := app.replyStandard(replyToken, textToSend); err != nil {
 		return err
 	}
 
@@ -340,11 +327,8 @@ func (app *Yarana) processGetActivities(replyToken string, userID string, keywor
 		app.replyWithHelp(replyToken, "まだ1回もやってないじゃないの。やりなさいよ。")
 		return fmt.Errorf("no activity data in the user")
 	}
-	// Reply to user
-	if _, err := app.bot.ReplyMessage(
-		replyToken,
-		linebot.NewTextMessage(strings.TrimSpace(textToSend)),
-	).Do(); err != nil {
+	// Send message to user
+	if err := app.replyStandard(replyToken, textToSend); err != nil {
 		return err
 	}
 
@@ -390,10 +374,32 @@ func (app *Yarana) processAddActivity(replyToken string, userID string, keyword 
 	// Make text to send
 	var textToSend string
 	textToSend = fmt.Sprintf("%sをやったのね、えらいじゃないの！", keyword)
-	// Reply to user
+	// Send message to user
+	if err := app.replyStandard(replyToken, textToSend); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (app *Yarana) processNoneType(replyToken string, inputMessage string) error {
+	// Reply as Joke
+	if jokeReplyText := AnalyzeInputTextForJoke(inputMessage); jokeReplyText != "" {
+		// Send message to user
+		if err := app.replyStandard(replyToken, jokeReplyText); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	// Couldn't analyze
+	app.replyWithHelp(replyToken, "それじゃわからないわよ")
+	return nil
+}
+
+func (app *Yarana) replyStandard(replyToken string, message string) error {
 	if _, err := app.bot.ReplyMessage(
 		replyToken,
-		linebot.NewTextMessage(strings.TrimSpace(textToSend)),
+		linebot.NewTextMessage(strings.TrimSpace(message)),
 	).Do(); err != nil {
 		return err
 	}
