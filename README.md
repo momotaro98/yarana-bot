@@ -68,3 +68,18 @@ $ make
 ```
 $ make test
 ```
+
+## Deployment
+
+### In advance : Add git remote
+
+```
+$ git remote add dokku dokku@server-domain:yarana-bot
+```
+
+### How to deploy
+
+```
+# For example, deploy develop branch one
+$ git push dokku develop:master
+```
