@@ -9,6 +9,9 @@
 # Common
 *.swp
 
+# JetBrains
+.idea/
+
 # Makefile
 /workdir
 
